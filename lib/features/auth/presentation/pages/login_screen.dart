@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../../injection_container.dart';
 import '../bloc/auth_bloc.dart';
@@ -45,7 +46,7 @@ class _LoginViewState extends State<_LoginView>
   void initState() {
     super.initState();
     _controller = AnimationController(
-      vsync: this,
+       vsync: this,
       duration: const Duration(milliseconds: 1100),
     );
 
@@ -114,243 +115,178 @@ class _LoginViewState extends State<_LoginView>
     }
   }
 
+  void _handleNavigation(BuildContext context, CampusAuthState state) {
+    if (state is CampusAuthAuthenticated) {
+      context.go('/dashboard');
+    } else if (state is CampusAuthProfileIncomplete) {
+      context.go('/complete-profile');
+    } else if (state is CampusAuthPinSetupRequired) {
+      context.go('/set-pin');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final cs = theme.colorScheme;
 
     return GestureDetector(
-      // Tap anywhere outside a text field to close keyboard
       onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
-        resizeToAvoidBottomInset: true,
+        resizeToAvoidBottomInset: false, // Better for vertical centering when keyboard is not visible
         body: SafeArea(
-        child: BlocConsumer<AuthBloc, CampusAuthState>(
-          listener: (context, state) {
-            if (state is CampusAuthAuthenticated) {
-              // TODO: context.go('/dashboard')
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: const Text('Login Successful!'),
-                  backgroundColor: cs.secondary,
-                  behavior: SnackBarBehavior.floating,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+          child: BlocConsumer<AuthBloc, CampusAuthState>(
+            listener: (context, state) {
+              if (state is CampusAuthError) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(state.message),
+                    backgroundColor: cs.error,
+                    behavior: SnackBarBehavior.floating,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
-                ),
-              );
-            } else if (state is CampusAuthError) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(state.message),
-                  backgroundColor: cs.error,
-                  behavior: SnackBarBehavior.floating,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-              );
-            }
-          },
-          builder: (context, state) {
-            // Extra bottom padding = keyboard height so the bottom of
-            // the form is always above the keyboard when it appears.
-            final keyboardPadding =
-                MediaQuery.of(context).viewInsets.bottom;
-            return SingleChildScrollView(
-              keyboardDismissBehavior:
-                  ScrollViewKeyboardDismissBehavior.onDrag,
-              padding: EdgeInsets.fromLTRB(24, 0, 24, keyboardPadding + 24),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    const SizedBox(height: 56),
-
-                    // ── Animated Logo ──────────────────────────────
-                    FadeTransition(
-                      opacity: _logoFade,
-                      child: ScaleTransition(
-                        scale: _logoScale,
-                        child: Center(
-                          child: Container(
-                            width: 80,
-                            height: 80,
-                            decoration: BoxDecoration(
-                              color: cs.primary,
-                              borderRadius: BorderRadius.circular(22),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: cs.secondary.withValues(alpha: 0.3),
-                                  blurRadius: 24,
-                                  offset: const Offset(0, 6),
-                                ),
-                              ],
-                            ),
-                            child: Icon(
-                              Icons.account_balance_wallet_rounded,
-                              size: 44,
-                              color: cs.secondary,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 28),
-
-                    // ── Animated Header ───────────────────────────
-                    FadeTransition(
-                      opacity: _contentFade,
-                      child: SlideTransition(
-                        position: _headerSlide,
-                        child: Column(
-                          children: [
-                            Text(
-                              'Welcome Back',
-                              style: theme.textTheme.displayMedium,
-                              textAlign: TextAlign.center,
-                            ),
-                            const SizedBox(height: 6),
-                            Text(
-                              'Login to your CampusPay account',
-                              style: theme.textTheme.bodyMedium,
-                              textAlign: TextAlign.center,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 44),
-
-                    // ── Animated Email Field ──────────────────────
-                    FadeTransition(
-                      opacity: _contentFade,
-                      child: SlideTransition(
-                        position: _emailSlide,
-                        child: TextFormField(
-                          controller: _emailController,
-                          keyboardType: TextInputType.emailAddress,
-                          decoration: const InputDecoration(
-                            hintText: 'Email Address',
-                            prefixIcon: Icon(Icons.email_outlined),
-                          ),
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Please enter your email';
-                            }
-                            if (!value.contains('@')) {
-                              return 'Enter a valid email';
-                            }
-                            return null;
-                          },
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-
-                    // ── Animated Password Field ───────────────────
-                    FadeTransition(
-                      opacity: _contentFade,
-                      child: SlideTransition(
-                        position: _passwordSlide,
-                        child: TextFormField(
-                          controller: _passwordController,
-                          obscureText: _obscurePassword,
-                          decoration: InputDecoration(
-                            hintText: 'Password',
-                            prefixIcon: const Icon(Icons.lock_outline),
-                            suffixIcon: IconButton(
-                              icon: Icon(
-                                _obscurePassword
-                                    ? Icons.visibility_outlined
-                                    : Icons.visibility_off_outlined,
-                              ),
-                              onPressed: () => setState(
-                                () => _obscurePassword = !_obscurePassword,
-                              ),
-                            ),
-                          ),
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Please enter your password';
-                            }
-                            if (value.length < 6) {
-                              return 'Password must be at least 6 characters';
-                            }
-                            return null;
-                          },
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-
-                    // ── Forgot Password ───────────────────────────
-                    FadeTransition(
-                      opacity: _contentFade,
-                      child: Align(
-                        alignment: Alignment.centerRight,
-                        child: TextButton(
-                          onPressed: () {
-                            // TODO: Navigate to Forgot Password
-                          },
-                          child: const Text('Forgot Password?'),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-
-                    // ── Animated Button ───────────────────────────
-                    FadeTransition(
-                      opacity: _contentFade,
-                      child: SlideTransition(
-                        position: _buttonSlide,
-                        child: ElevatedButton(
-                          onPressed:
-                              state is CampusAuthLoading ? null : _onLoginPressed,
-                          child: state is CampusAuthLoading
-                              ? const SizedBox(
-                                  height: 22,
-                                  width: 22,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2.5,
-                                    color: Colors.white,
+                );
+              } else {
+                _handleNavigation(context, state);
+              }
+            },
+            builder: (context, state) {
+              return LayoutBuilder(
+                builder: (context, constraints) {
+                  return SingleChildScrollView(
+                    keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                      child: IntrinsicHeight(
+                        child: Form(
+                          key: _formKey,
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              const SizedBox(height: 24),
+                              // ── Animated Logo ──────────────────────
+                              FadeTransition(
+                                opacity: _logoFade,
+                                child: ScaleTransition(
+                                  scale: _logoScale,
+                                  child: Center(
+                                    child: Container(
+                                      width: 80, height: 80,
+                                      decoration: BoxDecoration(
+                                        color: cs.primary,
+                                        borderRadius: BorderRadius.circular(22),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: cs.secondary.withValues(alpha: 0.3),
+                                            blurRadius: 24, offset: const Offset(0, 6),
+                                          ),
+                                        ],
+                                      ),
+                                      child: Icon(Icons.account_balance_wallet_rounded, size: 44, color: cs.secondary),
+                                    ),
                                   ),
-                                )
-                              : const Text('Login'),
+                                ),
+                              ),
+                              const SizedBox(height: 28),
+                              // ── Animated Header ────────────────────
+                              FadeTransition(
+                                opacity: _contentFade,
+                                child: SlideTransition(
+                                  position: _headerSlide,
+                                  child: Column(
+                                    children: [
+                                      Text('Welcome Back', style: theme.textTheme.displayMedium, textAlign: TextAlign.center),
+                                      const SizedBox(height: 6),
+                                      Text('Login to your CampusPay account', style: theme.textTheme.bodyMedium, textAlign: TextAlign.center),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 44),
+                              // ── Animated Email Field ───────────────
+                              FadeTransition(
+                                opacity: _contentFade,
+                                child: SlideTransition(
+                                  position: _emailSlide,
+                                  child: TextFormField(
+                                    controller: _emailController,
+                                    keyboardType: TextInputType.emailAddress,
+                                    decoration: const InputDecoration(hintText: 'Email Address', prefixIcon: Icon(Icons.email_outlined)),
+                                    validator: (value) => (value == null || !value.contains('@')) ? 'Enter a valid email' : null,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+                              // ── Animated Password Field ────────────
+                              FadeTransition(
+                                opacity: _contentFade,
+                                child: SlideTransition(
+                                  position: _passwordSlide,
+                                  child: TextFormField(
+                                    controller: _passwordController,
+                                    obscureText: _obscurePassword,
+                                    decoration: InputDecoration(
+                                      hintText: 'Password',
+                                      prefixIcon: const Icon(Icons.lock_outline),
+                                      suffixIcon: IconButton(
+                                        icon: Icon(_obscurePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined),
+                                        onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                                      ),
+                                    ),
+                                    validator: (value) => (value == null || value.isEmpty) ? 'Please enter your password' : null,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              // ── Forgot Password ────────────────────
+                              FadeTransition(
+                                opacity: _contentFade,
+                                child: Align(
+                                  alignment: Alignment.centerRight,
+                                  child: TextButton(onPressed: () => context.push('/forgot-password'), child: const Text('Forgot Password?')),
+                                ),
+                              ),
+                              const SizedBox(height: 20),
+                              // ── Animated Button ────────────────────
+                              FadeTransition(
+                                opacity: _contentFade,
+                                child: SlideTransition(
+                                  position: _buttonSlide,
+                                  child: ElevatedButton(
+                                    onPressed: state is CampusAuthLoading ? null : _onLoginPressed,
+                                    child: state is CampusAuthLoading
+                                        ? const SizedBox(height: 22, width: 22, child: CircularProgressIndicator(strokeWidth: 2.5, color: Colors.white))
+                                        : const Text('Login'),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 24),
+                              // ── Register Link ──────────────────────
+                              FadeTransition(
+                                opacity: _contentFade,
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text("Don't have an account?", style: theme.textTheme.bodyMedium),
+                                    TextButton(onPressed: () => context.push('/register'), child: const Text('Register')),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(height: 24),
+                            ],
+                          ),
                         ),
                       ),
                     ),
-                    const SizedBox(height: 24),
-
-                    // ── Register Link ─────────────────────────────
-                    FadeTransition(
-                      opacity: _contentFade,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            "Don't have an account?",
-                            style: theme.textTheme.bodyMedium,
-                          ),
-                          TextButton(
-                            onPressed: () {
-                              // TODO: Navigate to Register screen
-                            },
-                            child: const Text('Register'),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                  ],
-                ),
-              ),
-            );
-          },
-        ),       // BlocConsumer
-        ),       // SafeArea
-      ),         // Scaffold
-    );           // GestureDetector
+                  );
+                },
+              );
+            },
+          ),
+        ),
+      ),
+    );
   }
 }

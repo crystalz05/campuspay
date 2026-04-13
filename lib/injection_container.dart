@@ -1,18 +1,16 @@
 import 'package:get_it/get_it.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-import 'features/auth/presentation/bloc/auth_bloc.dart';
-import 'features/splash/presentation/cubit/splash_cubit.dart';
+import 'features/auth/di/auth_injection.dart';
+import 'features/splash/di/splash_injection.dart';
 
-final sl = GetIt.instance; // sl stands for Service Locator
+final sl = GetIt.instance;
 
 Future<void> init() async {
-  // Core Services
+  // --- External / Core (always first, features depend on these) ---
   sl.registerLazySingleton(() => Supabase.instance.client);
 
-  // Blocs / Cubits
-  sl.registerFactory(() => AuthBloc(supabaseClient: sl()));
-  sl.registerFactory(() => SplashCubit(supabaseClient: sl()));
-
-  // Use cases, Repositories, Data Sources will go here as features expand
+  // --- Features ---
+  initAuthDependencies(sl);
+  initSplashDependencies(sl);
 }

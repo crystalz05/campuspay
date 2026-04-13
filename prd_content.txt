@@ -1,0 +1,424 @@
+CAMPUSPAY
+Student Utility Payment Platform
+Product Requirements Document
+Version 1.1  |  March 2026  |  Start Date: 30 March 2026
+Platform: Flutter (Android)  |  Backend: Supabase  |  Status: Planning
+Author: Michael  |  Project Type: Final Year Project
+1. Executive Summary
+CampusPay is a mobile payment application built in Flutter targeting Nigerian polytechnic and university students. It centralizes three core financial activities students engage in daily: paying school fees via RRR reference numbers (Remita), purchasing mobile data bundles, and transferring funds between peers on campus.
+The application is developed as a Final Year Project at Auchi Polytechnic, simulating a production-grade payment ecosystem in a sandbox/mock environment. The goal is to demonstrate end-to-end mobile payment flows, authentication, transaction management, and a clean, intuitive UX that reflects real-world fintech product standards.
+2. Problem Statement
+2.1 The Pain Points
+Nigerian students currently deal with a fragmented payment experience:
+School fees require visiting a bank or navigating the REMITA web portal — no mobile-native, student-friendly flow exists.
+Data bundle purchases happen across multiple informal channels (USSD codes, third-party apps, vendors) with no transaction history.
+Peer-to-peer transfers rely on general banking apps not designed for the student context.
+There is no single platform that unifies these three use cases under one student identity.
+2.2 The Opportunity
+A lightweight, well-designed mobile app that simulates this unified experience represents a compelling final year project, and a realistic prototype that could be pitched to polytechnic management or a startup. Even in sandbox/mock mode, it demonstrates genuine product thinking and technical depth.
+3. Goals & Non-Goals
+3.1 Goals
+Implement school fee payment using Remita Flutter widget with real RRR number validation (sandbox environment).
+Implement data bundle purchase with a mocked provider API (simulated success/failure responses).
+Implement wallet-to-wallet fund transfer between registered CampusPay users.
+Build a complete auth flow: registration, login, email verification, password reset.
+Maintain full transaction history per user with status tracking.
+Deliver a polished, production-quality UI worthy of a portfolio and final year defence.
+3.2 Non-Goals
+Live payment processing with real money — all transactions run in sandbox/mock mode.
+iOS support — Android only for this project scope.
+Third-party bank account linking or card tokenization.
+Airtime top-up (out of scope to keep delivery focused).
+Admin dashboard or institutional back-office panel.
+4. Target Users & Personas
+Persona
+Description
+Primary Need
+Undergraduate Student
+18–25 yr old, smartphone-first, limited income, often on prepaid data
+Pay school fees without visiting a bank; buy data cheaply
+HND / Polytechnic Student
+Similar to above; may deal with REMITA RRR numbers more frequently
+Reliable RRR payment flow on mobile
+Student Housing Peer
+Splits costs with roommates, transfers small amounts regularly
+Fast, low-friction peer transfer
+Part-time / Working Student
+Earns small income, manages cash flow carefully
+Transaction history and balance visibility
+5. Feature Specifications
+5.1 Authentication Module
+Stack: Supabase Auth (email/password) + deep link handling for verification and password reset.
+Registration: name, email, password, matric number, institution name.
+Email verification flow with deep link redirect back to app.
+Login with session persistence (Supabase session tokens).
+Password reset via email deep link (sabistyle:// scheme will be adapted).
+Auto-logout on token expiry with graceful re-auth prompt.
+5.2 Wallet / Dashboard
+The central screen of the app. Shows the student's current simulated wallet balance and quick-action shortcuts.
+Wallet balance display (virtual balance, seeded on registration e.g. ₦10,000).
+Quick action buttons: Pay Fees, Buy Data, Transfer, History.
+Recent transactions widget (last 5 transactions).
+User greeting with avatar initials (no image upload needed for MVP).
+5.3 School Fee Payment (Remita)
+Core feature. Uses the official Remita Flutter widget in sandbox mode against remitademo.net.
+Input screen: student enters RRR (Remita Retrieval Reference) number.
+RRR validation: confirm the reference resolves to a valid fee record before proceeding.
+Amount confirmation screen: display fetched amount, purpose, and institution name.
+Payment screen: launch Remita Flutter widget (sandbox) to process payment.
+Success/failure screen with receipt summary.
+Transaction saved to Supabase with status, amount, RRR, and timestamp.
+5.4 Data Bundle Purchase (Mocked)
+Simulates a data bundle provider API. No real API integration — responses are mocked locally or via a simple Supabase Edge Function that returns simulated results.
+Network selection: MTN, Airtel, Glo, 9mobile.
+Phone number input with basic format validation.
+Bundle selection: curated list of packages (e.g. 1GB/₦300, 2GB/₦500, 5GB/₦1,000).
+Wallet balance check before proceeding — reject if insufficient.
+Mock API call with 1–2 second delay to simulate network request.
+90% simulated success rate, 10% simulated failure (for realistic UX testing).
+Deduct amount from virtual wallet on success; update transaction history.
+5.5 Peer-to-Peer Transfer
+Allows registered CampusPay users to transfer virtual funds to each other.
+Recipient lookup: search by registered email or matric number.
+Recipient confirmation screen: show name and institution before transfer.
+Amount entry with wallet balance validation.
+Optional transfer note/memo.
+PIN confirmation (4-digit transaction PIN set during onboarding).
+Instant wallet debit/credit with transaction record for both parties.
+Push notification to recipient on successful transfer (local notification simulation).
+5.6 Transaction History
+Full log of all user transactions across all three payment types.
+Filterable by type: All, Fees, Data, Transfers.
+Each entry: date, type, amount, status (success/failed/pending), description.
+Tap to expand: full receipt detail view.
+Pull-to-refresh for latest data.
+5.7 Profile & Settings
+View and edit display name.
+Change transaction PIN.
+Change password (via email reset flow).
+Logout.
+App version and build info (useful for defence demo).
+6. Core User Flows
+6.1 Onboarding Flow
+Splash Screen  →  Onboarding Slides (3)  →  Register / Login  →  Email Verification  →  Set Transaction PIN  →  Dashboard
+6.2 School Fee Payment Flow
+Dashboard  →  Pay Fees  →  Enter RRR  →  Validate RRR  →  Confirm Amount  →  Remita Widget  →  Success/Fail Screen  →  Transaction History
+6.3 Data Bundle Flow
+Dashboard  →  Buy Data  →  Select Network  →  Enter Phone  →  Select Bundle  →  Confirm  →  PIN Entry  →  Mock Processing  →  Success/Fail  →  Wallet Deducted
+6.4 Transfer Flow
+Dashboard  →  Transfer  →  Search Recipient  →  Confirm Recipient  →  Enter Amount & Note  →  PIN Entry  →  Debit Sender / Credit Recipient  →  Success Screen
+7. Screen Inventory
+Screen
+Module
+Priority
+Notes
+Splash Screen
+App Shell
+P0
+Branding + auth check
+Onboarding Slides
+Onboarding
+P1
+3 slides, value props
+Registration
+Auth
+P0
+Name, email, matric, password
+Login
+Auth
+P0
+Email + password
+Email Verification Pending
+Auth
+P0
+Resend link option
+Set Transaction PIN
+Onboarding
+P0
+4-digit PIN, confirm entry
+Dashboard / Home
+Wallet
+P0
+Balance, quick actions, recent tx
+Pay Fees - RRR Entry
+Remita
+P0
+RRR input + validate CTA
+Pay Fees - Confirm
+Remita
+P0
+Amount, purpose, institution
+Remita Widget Screen
+Remita
+P0
+Embedded widget
+Payment Result
+Shared
+P0
+Success / fail state
+Buy Data - Network Select
+Data
+P0
+Network grid
+Buy Data - Phone & Bundle
+Data
+P0
+Phone input + bundle list
+Buy Data - Confirm
+Data
+P0
+Summary + PIN entry
+Transfer - Recipient Search
+Transfer
+P0
+Email/matric search
+Transfer - Confirm Recipient
+Transfer
+P0
+Name, institution preview
+Transfer - Amount & Note
+Transfer
+P0
+Amount input, memo
+Transfer - PIN Confirm
+Transfer
+P0
+PIN entry to authorize
+Transaction History
+History
+P0
+Filterable list
+Transaction Detail
+History
+P1
+Full receipt view
+Profile
+Settings
+P1
+Name, PIN change, logout
+Change Password
+Settings
+P1
+Email reset flow
+Forgot Password
+Auth
+P0
+Email input for reset link
+Reset Password
+Auth
+P0
+Deep link landing, new password
+8. Data Model (Supabase)
+Ten tables mirroring the SabiStyle schema pattern, adapted for a payment context.
+8.1 Table Definitions
+Table
+Key Columns
+Purpose
+users
+id (uuid PK), email, full_name, matric_number, institution, wallet_balance (numeric), transaction_pin (hashed), created_at
+Core user identity and wallet
+transactions
+id, user_id (FK), type (enum: fee|data|transfer), amount, status (enum: pending|success|failed), reference, description, created_at
+Full transaction log for all payment types
+fee_payments
+id, transaction_id (FK), rrr_number, institution_name, fee_purpose, remita_response (jsonb)
+Remita-specific payment details
+data_purchases
+id, transaction_id (FK), network, phone_number, bundle_name, bundle_gb, mock_response (jsonb)
+Data bundle purchase records
+transfers
+id, sender_id (FK), receiver_id (FK), transaction_id (FK), note, status
+P2P transfer records linking both parties
+notifications
+id, user_id (FK), title, body, read (bool), type, created_at
+In-app notification store
+8.2 RLS Policies
+users: Users can only SELECT and UPDATE their own row.
+transactions: Users can only SELECT their own transactions; INSERT allowed for system-level operations via service role.
+transfers: Both sender and receiver can SELECT the transfer record.
+notifications: Users can only access their own notifications.
+9. Technical Architecture
+Layer
+Technology
+Rationale
+UI Framework
+Flutter (Dart)
+Cross-platform, fast UI, existing familiarity
+State Management
+BLoC (flutter_bloc)
+Consistent with SabiStyle patterns; testable
+Navigation
+GoRouter
+Declarative routing + deep link handling
+Backend / DB
+Supabase (PostgreSQL)
+Relational data essential for financial records; known stack
+Auth
+Supabase Auth
+Email/password + magic link for resets
+School Fee Payment
+Remita Flutter Widget (sandbox)
+Required by project scope; remitademo.net
+Data Bundle
+Mocked locally / Supabase Edge Function
+No real provider API needed for school project
+File Storage
+Supabase Storage (minimal use)
+Profile avatar only if time permits
+HTTP Client
+Dio
+Proven reliable for Android, used in SabiStyle
+Local Storage
+flutter_secure_storage
+PIN and session caching
+Notifications
+flutter_local_notifications
+Simulated push on transfer receipt
+Deep Links
+app_links
+Password reset + email verification redirect
+10. Non-Functional Requirements
+10.1 Performance
+App cold start under 3 seconds on a mid-range Android device (4GB RAM).
+All screen transitions under 300ms.
+Transaction list loads within 1.5 seconds for up to 100 records.
+10.2 Security
+Transaction PIN stored hashed — never in plaintext.
+Supabase RLS enforced on all sensitive tables.
+JWT token stored in flutter_secure_storage, not SharedPreferences.
+All API calls over HTTPS; no sensitive data in URL query params.
+10.3 Reliability
+Graceful error states for all network failures — no unhandled exceptions visible to user.
+Idempotent transaction creation — no duplicate charges if user retries.
+Optimistic UI for wallet deduction — rollback on failure.
+10.4 Usability
+All core flows completable within 4 taps from the Dashboard.
+Accessible colour contrast (WCAG AA minimum).
+Explicit loading indicators on all async operations.
+Empty states for transaction history and search results.
+11. Development Timeline
+Phase
+Duration
+Deliverables
+Phase 0: Setup
+Mar 30 – Apr 2 (4 days)
+Supabase project + schema, Flutter project init, BLoC structure, GoRouter setup, design tokens
+Phase 1: Auth
+Apr 3–8 (6 days)
+Registration, login, email verify, password reset, PIN setup, session handling
+Phase 2: Dashboard & Wallet
+Apr 9–12 (4 days)
+Home screen, balance display, quick actions, navigation skeleton
+Phase 3: Remita Integration
+Apr 13–20 (8 days)
+RRR input, validation, Remita widget, payment result, transaction save
+Phase 4: Data Bundle
+Apr 21–25 (5 days)
+Network select, bundle list, mock API, wallet deduction, result screen
+Phase 5: Transfer
+Apr 26 – May 3 (8 days)
+Recipient search, confirm, PIN auth, atomic wallet update, notifications
+Phase 6: History & Profile
+May 4–8 (5 days)
+Transaction list, filters, detail view, profile, settings
+Phase 7: Polish & QA
+May 9–14 (6 days)
+Edge cases, error states, empty states, loading indicators, UI refinement
+Buffer / Documentation
+May 15–31
+Project report writing, defence prep, APK build — 6+ weeks before defence
+12. Success Criteria
+Since this is a final year project, success is measured against defence and portfolio standards, not business KPIs.
+Criterion
+Target
+All 3 payment flows functional end-to-end
+Yes — demonstrable live in defence
+Remita sandbox processes a valid RRR
+Yes — real widget, real sandbox response
+Zero crashes during 10-minute demo walkthrough
+Yes
+Transaction history accurate for all transaction types
+Yes — verifiable in Supabase dashboard
+Auth flows (register, verify, reset) all work
+Yes
+Codebase is structured, readable, and BLoC-consistent
+Yes — evaluator can review on screen
+APK installable and running on physical Android device
+Yes
+Supervisor sign-off on scope and implementation
+Yes — prior approval received
+13. Risks & Mitigations
+Risk
+Likelihood
+Impact
+Mitigation
+Remita sandbox instability
+Medium
+High
+Test early; have fallback mock if sandbox is down during defence
+Scope creep beyond 3 core features
+High
+Medium
+Strictly gate Phase 6+ until Phases 1–5 are complete
+Supabase RLS misconfiguration causing data leaks
+Low
+High
+Write RLS policy tests; verify in Supabase dashboard before demo
+Parallel SabiStyle work causing timeline drift
+Medium
+Medium
+SabiStyle completes April 30 — no overlap in build phases
+Atomic wallet updates causing race conditions
+Low
+High
+Use Supabase Postgres function (RPC) for transfer to guarantee atomicity
+14. Open Questions
+Should the onboarding slides be skippable on subsequent launches? (Recommendation: yes, use SharedPreferences flag.)
+Transaction PIN: 4-digit numeric only, or allow alphanumeric? (Recommendation: 4-digit numeric — simpler UX, sufficient for demo.)
+Should virtual wallet be refillable? (Recommendation: yes, add a simple 'Top Up Wallet' mock action so demo flows don't get blocked by zero balance.)
+Notifications: local only, or simulate server push via Supabase Realtime? (Recommendation: Supabase Realtime for transfers — demonstrates real-time capability, stronger for defence.)
+Appendix: Package Dependencies
+Package
+Version (approx.)
+Purpose
+flutter_bloc
+^8.x
+BLoC state management
+go_router
+^14.x
+Navigation + deep links
+supabase_flutter
+^2.x
+Supabase SDK
+dio
+^5.x
+HTTP client for Remita and custom requests
+flutter_secure_storage
+^9.x
+Secure PIN and token storage
+app_links
+^6.x
+Deep link handling
+flutter_local_notifications
+^17.x
+Local notification simulation
+remita_flutter
+latest
+Remita payment widget
+equatable
+^2.x
+BLoC state equality
+get_it
+^7.x
+Service locator / DI
+shared_preferences
+^2.x
+Onboarding flag storage
+intl
+^0.19.x
+Currency and date formatting
+A few things worth noting:
+process_transfer RPC is critical. Never do the wallet debit/credit from Flutter-side with two separate updates — race conditions will bite you. This function handles the entire transfer atomically with a row lock on the sender. Call it from Dart via supabase.rpc('process_transfer', params: {...}).
+security definer on the RPC means it runs with elevated privileges, bypassing RLS for the internal wallet updates. That's intentional — the RLS policies on users would otherwise block the receiver credit since the caller isn't the receiver. The function itself enforces the business logic, so it's safe.
+Wallet seeded at ₦10,000 on registration so your demo flows don't immediately hit zero balance. You can adjust that default.
+no_self_transfer constraint on the transfers table saves you from having to validate that in Flutter — the database rejects it outright.
