@@ -17,7 +17,7 @@ class SplashScreen extends StatelessWidget {
           if (state is SplashNavigateToLogin) {
             context.go('/login');
           } else if (state is SplashNavigateToHome) {
-            context.go('/login'); // placeholder until dashboard exists
+            context.go('/dashboard');
           }
         },
         child: const _SplashBody(),

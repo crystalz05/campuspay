@@ -3,6 +3,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'features/auth/di/auth_injection.dart';
 import 'features/splash/di/splash_injection.dart';
+import 'features/dashboard/di/dashboard_injection.dart';
 
 final sl = GetIt.instance;
 
@@ -13,4 +14,5 @@ Future<void> init() async {
   // --- Features ---
   initAuthDependencies(sl);
   initSplashDependencies(sl);
+  initDashboardDependencies(sl);
 }

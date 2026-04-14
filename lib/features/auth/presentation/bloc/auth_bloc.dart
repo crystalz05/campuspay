@@ -163,7 +163,19 @@ class AuthBloc extends Bloc<AuthEvent, CampusAuthState> {
     final result = await setTransactionPinUseCase(event.pin);
     result.fold(
       (failure) => emit(CampusAuthError(message: failure.message)),
-      (_) => emit(CampusAuthPinSetupSuccess()),
+      (_) async {
+        final userResult = await getCurrentUserUseCase(NoParams());
+        userResult.fold(
+          (failure) => emit(CampusAuthPinSetupSuccess()),
+          (user) {
+            if (user != null) {
+              emit(CampusAuthAuthenticated(user: user));
+            } else {
+              emit(CampusAuthPinSetupSuccess());
+            }
+          },
+        );
+      },
     );
   }
 }
