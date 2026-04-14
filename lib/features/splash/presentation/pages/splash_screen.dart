@@ -1,42 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 
-import '../../../../injection_container.dart';
-import '../cubit/splash_cubit.dart';
-
-class SplashScreen extends StatelessWidget {
+class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) => sl<SplashCubit>()..initializeApp(),
-      child: BlocListener<SplashCubit, SplashState>(
-        listener: (context, state) {
-          final currentPath = GoRouterState.of(context).uri.path;
-          if (currentPath == '/') {
-            if (state is SplashNavigateToLogin) {
-              context.go('/login');
-            } else if (state is SplashNavigateToHome) {
-              context.go('/dashboard');
-            }
-          }
-        },
-        child: const _SplashBody(),
-      ),
-    );
-  }
+  State<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashBody extends StatefulWidget {
-  const _SplashBody();
-
-  @override
-  State<_SplashBody> createState() => _SplashBodyState();
-}
-
-class _SplashBodyState extends State<_SplashBody>
+class _SplashScreenState extends State<SplashScreen>
     with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
   late final Animation<double> _fadeAnim;
@@ -139,7 +110,7 @@ class _SplashBodyState extends State<_SplashBody>
                   ),
                   const SizedBox(height: 6),
 
-                  // Slide-up tagline (slight delay via interval)
+                  // Slide-up tagline 
                   Transform.translate(
                     offset: Offset(0, _slideAnim.value * 1.3),
                     child: Text(
@@ -149,7 +120,7 @@ class _SplashBodyState extends State<_SplashBody>
                   ),
                   const SizedBox(height: 64),
 
-                  // Subtle loading indicator
+                  // Loading indicator - Spins while GoRouter waits for AuthBloc
                   SizedBox(
                     width: 28,
                     height: 28,

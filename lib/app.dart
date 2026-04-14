@@ -1,5 +1,6 @@
 import 'package:campuspay/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:flutter/material.dart';
+import 'features/auth/presentation/bloc/auth_event.dart';
 import 'injection_container.dart' as di;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'core/theme/app_theme.dart';
@@ -13,15 +14,21 @@ class CampusPayApp extends StatelessWidget {
 
     return MultiBlocProvider(
         providers: [
-          BlocProvider<AuthBloc>(create: (_) => di.sl<AuthBloc>())
+          BlocProvider<AuthBloc>(create: (_) => di.sl<AuthBloc>()..add(CheckAuthStatusEvent()))
         ],
-        child: MaterialApp.router(
-          title: 'CampusPay',
-          theme: CampusPayTheme.lightTheme,
-          darkTheme: CampusPayTheme.darkTheme,
-          themeMode: ThemeMode.system, // follows device appearance setting
-          routerConfig: AppRouter.router,
-          debugShowCheckedModeBanner: false,
+        child: Builder(
+          builder: (context) {
+            final router = AppRouter.createRouter(context.read<AuthBloc>());
+            
+            return MaterialApp.router(
+              title: 'CampusPay',
+              theme: CampusPayTheme.lightTheme,
+              darkTheme: CampusPayTheme.darkTheme,
+              themeMode: ThemeMode.system, // follows device appearance setting
+              routerConfig: router,
+              debugShowCheckedModeBanner: false,
+            );
+          }
         )
     );
   }

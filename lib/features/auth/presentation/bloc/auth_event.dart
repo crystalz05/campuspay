@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:supabase_flutter/supabase_flutter.dart' as supabase;
 
 abstract class AuthEvent extends Equatable {
   const AuthEvent();
@@ -75,3 +76,15 @@ class SetTransactionPinEvent extends AuthEvent {
   @override
   List<Object?> get props => [pin];
 }
+
+class AuthStateChangedEvent extends AuthEvent {
+  final supabase.AuthChangeEvent event;
+
+  const AuthStateChangedEvent(this.event);
+
+  @override
+  List<Object?> get props => [event];
+}
+
+
+

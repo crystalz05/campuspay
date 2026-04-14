@@ -10,13 +10,7 @@ class SettingsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<AuthBloc, CampusAuthState>(
-      listener: (context, state) {
-        if (state is CampusAuthUnauthenticated) {
-          context.go('/login');
-        }
-      },
-      child: Scaffold(
+    return Scaffold(
         appBar: AppBar(title: const Text('Settings'), centerTitle: true),
         body: BlocBuilder<AuthBloc, CampusAuthState>(
           builder: (context, state) {
@@ -88,8 +82,7 @@ class SettingsScreen extends StatelessWidget {
             );
           },
         ),
-      ),
-    );
+      );
   }
 
   void _showLogoutConfirmation(BuildContext context) {

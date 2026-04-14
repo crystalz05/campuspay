@@ -1,4 +1,7 @@
+import 'dart:async';
+import 'dart:developer';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:supabase_flutter/supabase_flutter.dart' as supabase;
 import '../../../../core/usecases/usecase.dart';
 import '../../domain/entities/user_entity.dart';
 import '../../domain/usecases/complete_profile_usecase.dart';
@@ -22,6 +25,10 @@ class AuthBloc extends Bloc<AuthEvent, CampusAuthState> {
   final SetTransactionPinUseCase setTransactionPinUseCase;
   final CompleteProfileUseCase completeProfileUseCase;
 
+  // Supabase auth state stream subscription — listens for deep-link auth events
+  // like PASSWORD_RECOVERY so the router can redirect correctly.
+  late final StreamSubscription<supabase.AuthState> _authStateSubscription;
+
   AuthBloc({
     required this.loginUseCase,
     required this.registerUseCase,
@@ -40,28 +47,67 @@ class AuthBloc extends Bloc<AuthEvent, CampusAuthState> {
     on<ResetPasswordEvent>(_onResetPassword);
     on<SetTransactionPinEvent>(_onSetTransactionPin);
     on<CompleteProfileEvent>(_onCompleteProfile);
+    on<AuthStateChangedEvent>(_onAuthStateChanged);
+
+    // Subscribe to Supabase's native auth state stream.
+    // This is the only reliable way to detect PASSWORD_RECOVERY events
+    // that arrive via deep links, since they are not triggered through our use cases.
+    _authStateSubscription = supabase.Supabase.instance.client.auth.onAuthStateChange.listen(
+      (authState) {
+        log(
+          'Supabase auth event received: ${authState.event}',
+          name: 'AuthBloc',
+        );
+        add(AuthStateChangedEvent(authState.event));
+      },
+      onError: (e) => log('Supabase auth stream error: $e', name: 'AuthBloc'),
+    );
+  }
+
+  @override
+  Future<void> close() {
+    _authStateSubscription.cancel();
+    return super.close();
   }
 
   CampusAuthState _determineNextState(UserEntity user) {
-    // Check if profile is incomplete (matric number or institution is null or empty)
-    final isProfileIncomplete = (user.matricNumber?.isEmpty ?? true) || 
+    final isProfileIncomplete = (user.matricNumber?.isEmpty ?? true) ||
                                 (user.institution?.isEmpty ?? true);
-    
     if (isProfileIncomplete) {
       return CampusAuthProfileIncomplete(user: user);
     }
-    
     if (!user.isPinSet) {
       return CampusAuthPinSetupRequired(user: user);
     }
-    
     return CampusAuthAuthenticated(user: user);
+  }
+
+  Future<void> _onAuthStateChanged(
+    AuthStateChangedEvent event,
+    Emitter<CampusAuthState> emit,
+  ) async {
+    switch (event.event) {
+      case supabase.AuthChangeEvent.passwordRecovery:
+        // User tapped the reset-password deep link — signal the router to redirect.
+        log('PASSWORD_RECOVERY event — emitting CampusAuthPasswordRecovery', name: 'AuthBloc');
+        emit(CampusAuthPasswordRecovery());
+        break;
+      case supabase.AuthChangeEvent.signedOut:
+        emit(CampusAuthUnauthenticated());
+        break;
+      default:
+        // Ignore other events (signedIn is handled via CheckAuthStatusEvent / LoginEvent)
+        break;
+    }
   }
 
   Future<void> _onCheckAuthStatus(
     CheckAuthStatusEvent event,
     Emitter<CampusAuthState> emit,
   ) async {
+    // Don't overwrite the PasswordRecovery state — the user is mid-reset flow.
+    if (state is CampusAuthPasswordRecovery) return;
+
     emit(CampusAuthLoading());
     final result = await getCurrentUserUseCase(NoParams());
     result.fold(
@@ -179,3 +225,4 @@ class AuthBloc extends Bloc<AuthEvent, CampusAuthState> {
     );
   }
 }
+

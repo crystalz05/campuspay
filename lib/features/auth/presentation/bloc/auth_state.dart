@@ -64,3 +64,7 @@ class CampusAuthPasswordResetSent extends CampusAuthState {}
 class CampusAuthPasswordResetSuccess extends CampusAuthState {}
 
 class CampusAuthPinSetupSuccess extends CampusAuthState {}
+
+/// Emitted when Supabase fires a PASSWORD_RECOVERY auth event via deep link.
+/// The router uses this state to redirect the user to /reset-password.
+class CampusAuthPasswordRecovery extends CampusAuthState {}
