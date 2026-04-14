@@ -14,10 +14,13 @@ class SplashScreen extends StatelessWidget {
       create: (_) => sl<SplashCubit>()..initializeApp(),
       child: BlocListener<SplashCubit, SplashState>(
         listener: (context, state) {
-          if (state is SplashNavigateToLogin) {
-            context.go('/login');
-          } else if (state is SplashNavigateToHome) {
-            context.go('/dashboard');
+          final currentPath = GoRouterState.of(context).uri.path;
+          if (currentPath == '/') {
+            if (state is SplashNavigateToLogin) {
+              context.go('/login');
+            } else if (state is SplashNavigateToHome) {
+              context.go('/dashboard');
+            }
           }
         },
         child: const _SplashBody(),

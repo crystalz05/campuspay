@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'package:supabase_flutter/supabase_flutter.dart' as supabase;
 import '../../../../core/utils/hash_util.dart';
 import '../models/user_model.dart';
@@ -67,7 +68,8 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         if (publicUserResponse != null) {
           return UserModel.fromJson(publicUserResponse);
         }
-      } catch (_) {
+      } catch (e, stack) {
+        log('Warning: Failed to fetch public user record after registration', name: 'AuthRemoteDataSource', error: e, stackTrace: stack);
         // Fallback or ignore if RLS prevents selection before verification
       }
 
@@ -80,9 +82,11 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         isPinSet: false,
         createdAt: DateTime.now(),
       );
-    } on supabase.AuthException catch (e) {
+    } on supabase.AuthException catch (e, stack) {
+      log('Supabase AuthException during register', name: 'AuthRemoteDataSource', error: e, stackTrace: stack);
       throw app.ServerException(e.message);
-    } catch (e) {
+    } catch (e, stack) {
+      log('Unexpected error during register', name: 'AuthRemoteDataSource', error: e, stackTrace: stack);
       throw app.ServerException(e.toString());
     }
   }
@@ -102,7 +106,8 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       }).eq('id', user.id).select().single();
 
       return UserModel.fromJson(publicUserResponse);
-    } catch (e) {
+    } catch (e, stack) {
+      log('Error during completeProfile', name: 'AuthRemoteDataSource', error: e, stackTrace: stack);
       throw app.ServerException(e.toString());
     }
   }
@@ -130,9 +135,11 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
           .single();
 
       return UserModel.fromJson(publicUserResponse);
-    } on supabase.AuthException catch (e) {
+    } on supabase.AuthException catch (e, stack) {
+      log('Supabase AuthException during login', name: 'AuthRemoteDataSource', error: e, stackTrace: stack);
       throw app.ServerException(e.message);
-    } catch (e) {
+    } catch (e, stack) {
+      log('Unexpected error during login', name: 'AuthRemoteDataSource', error: e, stackTrace: stack);
       throw app.ServerException(e.toString());
     }
   }
@@ -151,26 +158,35 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
 
       if (publicUserResponse == null) return null;
       return UserModel.fromJson(publicUserResponse);
-    } catch (e) {
+    } catch (e, stack) {
+      log('Error fetching current user profile', name: 'AuthRemoteDataSource', error: e, stackTrace: stack);
       return null;
     }
   }
 
   @override
   Future<void> logout() async {
-    await client.auth.signOut();
+    try {
+      await client.auth.signOut();
+    } catch (e, stack) {
+      log('Error during logout', name: 'AuthRemoteDataSource', error: e, stackTrace: stack);
+    }
   }
 
   @override
   Future<void> forgotPassword({required String email}) async {
     try {
+      log('Requesting password reset for email: $email', name: 'AuthRemoteDataSource');
       await client.auth.resetPasswordForEmail(
-        email,
+        email.trim(),
         redirectTo: 'campuspay://reset-password',
       );
-    } on supabase.AuthException catch (e) {
+      log('Password reset requested successfully', name: 'AuthRemoteDataSource');
+    } on supabase.AuthException catch (e, stack) {
+      log('Supabase AuthException during forgotPassword', name: 'AuthRemoteDataSource', error: e, stackTrace: stack);
       throw app.ServerException(e.message);
-    } catch (e) {
+    } catch (e, stack) {
+      log('Unexpected error during forgotPassword', name: 'AuthRemoteDataSource', error: e, stackTrace: stack);
       throw app.ServerException(e.toString());
     }
   }
@@ -181,9 +197,12 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       await client.auth.updateUser(
         supabase.UserAttributes(password: newPassword),
       );
-    } on supabase.AuthException catch (e) {
+      log('Password reset successfully updated', name: 'AuthRemoteDataSource');
+    } on supabase.AuthException catch (e, stack) {
+      log('Supabase AuthException during resetPassword update', name: 'AuthRemoteDataSource', error: e, stackTrace: stack);
       throw app.ServerException(e.message);
-    } catch (e) {
+    } catch (e, stack) {
+      log('Unexpected error during resetPassword update', name: 'AuthRemoteDataSource', error: e, stackTrace: stack);
       throw app.ServerException(e.toString());
     }
   }
@@ -191,7 +210,10 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   @override
   Future<void> setTransactionPin({required String pin}) async {
     final user = client.auth.currentUser;
-    if (user == null) throw const app.AppAuthException('Not authenticated');
+    if (user == null) {
+      log('setTransactionPin called but user is null', name: 'AuthRemoteDataSource');
+      throw const app.AppAuthException('Not authenticated');
+    }
 
     try {
       // Hash the PIN before saving
@@ -200,7 +222,8 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       await client.from('users').update({
         'transaction_pin': hashedPin,
       }).eq('id', user.id);
-    } catch (e) {
+    } catch (e, stack) {
+      log('Error updating transaction PIN', name: 'AuthRemoteDataSource', error: e, stackTrace: stack);
       throw app.ServerException(e.toString());
     }
   }
