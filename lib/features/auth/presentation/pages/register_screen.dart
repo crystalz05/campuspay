@@ -49,12 +49,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
     final cs = Theme.of(context).colorScheme;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Create Account'), centerTitle: true),
+      appBar: AppBar(
+        title: const Text('Create Account'),
+      ),
       body: BlocListener<AuthBloc, CampusAuthState>(
         listener: (context, state) {
           if (state is CampusAuthError) {
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(state.message), backgroundColor: cs.error),
+              SnackBar(
+                content: Text(state.message), 
+                backgroundColor: cs.error,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                behavior: SnackBarBehavior.floating,
+              ),
             );
           } else if (state is CampusAuthVerificationRequired) {
             _showSuccessDialog(state.email);
@@ -77,20 +84,18 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         Text(
                           'Join CampusPay',
                           style: Theme.of(context).textTheme.displayMedium,
-                          textAlign: TextAlign.center,
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          'Create an account to manage your campus finances.',
+                          'Create an account to manage your campus finances securely.',
                           style: Theme.of(context).textTheme.bodyMedium,
-                          textAlign: TextAlign.center,
                         ),
-                        const SizedBox(height: 32),
+                        const SizedBox(height: 48),
                         TextFormField(
                           controller: _fullNameController,
                           decoration: const InputDecoration(
                             hintText: 'Full Name',
-                            prefixIcon: Icon(Icons.person_outline),
+                            prefixIcon: Icon(Icons.person_outline, size: 22),
                           ),
                           validator: (value) =>
                               value == null || value.isEmpty ? 'Please enter your name' : null,
@@ -100,7 +105,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           controller: _emailController,
                           decoration: const InputDecoration(
                             hintText: "Email Address",
-                            prefixIcon: Icon(Icons.email_outlined),
+                            prefixIcon: Icon(Icons.email_outlined, size: 22),
                           ),
                           keyboardType: TextInputType.emailAddress,
                           validator: (value) =>
@@ -111,10 +116,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           controller: _passwordController,
                           decoration: InputDecoration(
                             hintText: 'Password',
-                            prefixIcon: const Icon(Icons.lock_outline),
+                            prefixIcon: const Icon(Icons.lock_outline, size: 22),
                             suffixIcon: IconButton(
                               icon: Icon(
-                                _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                                _obscurePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                                size: 22,
                               ),
                               onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
                             ),
@@ -129,10 +135,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           controller: _repeatPasswordController,
                           decoration: InputDecoration(
                             hintText: 'Repeat Password',
-                            prefixIcon: const Icon(Icons.lock_outline),
+                            prefixIcon: const Icon(Icons.lock_outline, size: 22),
                             suffixIcon: IconButton(
                               icon: Icon(
-                                _repeatObscorePassword ? Icons.visibility_off : Icons.visibility,
+                                _repeatObscorePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                                size: 22,
                               ),
                               onPressed: () => setState(() => _repeatObscorePassword = !_repeatObscorePassword),
                             ),
@@ -145,33 +152,33 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             return null;
                           },
                         ),
-                        const SizedBox(height: 32),
+                        const SizedBox(height: 48),
                         BlocBuilder<AuthBloc, CampusAuthState>(
                           builder: (context, state) {
                             return ElevatedButton(
                               onPressed: state is CampusAuthLoading ? null : _onRegister,
                               child: state is CampusAuthLoading
-                                  ? const SizedBox(
+                                  ? SizedBox(
                                       height: 20,
                                       width: 20,
-                                      child: CircularProgressIndicator(strokeWidth: 2),
+                                      child: CircularProgressIndicator(strokeWidth: 2.5, color: cs.onPrimary),
                                     )
-                                  : const Text('Register'),
+                                  : const Text('Create Account'),
                             );
                           },
                         ),
-                        const SizedBox(height: 24),
+                        const SizedBox(height: 32),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            const Text('Already have an account?'),
+                            Text('Already have an account?', style: Theme.of(context).textTheme.bodyMedium),
                             TextButton(
                               onPressed: () => context.pop(),
-                              child: const Text('Login'),
+                              child: const Text('Sign In'),
                             ),
                           ],
                         ),
-                        const SizedBox(height: 24),
+                        const SizedBox(height: 40),
                       ],
                     ),
                   ),
@@ -192,6 +199,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         title: const Text('Verification Email Sent'),
         content: Text(
           'A verification link has been sent to $email. Please check your inbox to activate your account.',
+          style: Theme.of(context).textTheme.bodyMedium,
         ),
         actions: [
           TextButton(

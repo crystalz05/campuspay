@@ -27,20 +27,21 @@ class _WalletBalanceCardState extends State<WalletBalanceCard> {
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         color: cs.primary,
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(12),
+        // Subtle pattern or gradient for elegance
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
             cs.primary,
-            cs.primary.withValues(alpha: 0.8),
+            cs.primary.withValues(alpha: 0.9),
           ],
         ),
         boxShadow: [
           BoxShadow(
-            color: cs.primary.withValues(alpha: 0.3),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
+            color: cs.primary.withValues(alpha: 0.25),
+            blurRadius: 16,
+            offset: const Offset(0, 8),
           ),
         ],
       ),
@@ -48,54 +49,57 @@ class _WalletBalanceCardState extends State<WalletBalanceCard> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Wallet Balance',
+                'Available Balance',
                 style: theme.textTheme.bodyMedium?.copyWith(
-                  color: Colors.white.withValues(alpha: 0.7),
-                  fontWeight: FontWeight.w500,
+                  color: Colors.white.withValues(alpha: 0.8),
+                  letterSpacing: 0.5,
                 ),
               ),
-              const SizedBox(width: 8),
-              GestureDetector(
-                onTap: () => setState(() => _isBalanceVisible = !_isBalanceVisible),
-                child: Icon(
+              IconButton(
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
+                onPressed: () => setState(() => _isBalanceVisible = !_isBalanceVisible),
+                icon: Icon(
                   _isBalanceVisible ? Icons.visibility_outlined : Icons.visibility_off_outlined,
-                  color: Colors.white.withValues(alpha: 0.7),
+                  color: cs.secondary,
                   size: 20,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 8),
           Text(
-            _isBalanceVisible ? currencyFormat.format(widget.balance) : '₦ • • • • • •',
+            _isBalanceVisible ? currencyFormat.format(widget.balance) : '₦ * * * * * *',
             style: theme.textTheme.displayLarge?.copyWith(
               color: Colors.white,
-              fontSize: 32,
-              fontWeight: FontWeight.bold,
+              fontSize: 34,
               letterSpacing: _isBalanceVisible ? 0 : 2,
             ),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 32),
           Row(
             children: [
               _buildActionButton(
                 context,
-                icon: Icons.add_circle_outline,
-                label: 'Top Up',
+                icon: Icons.add,
+                label: 'Fund Wallet',
                 onTap: () {
                   // TODO: Implement Top Up
                 },
+                isPrimary: true,
               ),
               const SizedBox(width: 16),
               _buildActionButton(
                 context,
-                icon: Icons.account_balance_wallet_outlined,
-                label: 'Details',
+                icon: Icons.arrow_outward_rounded,
+                label: 'Transfer',
                 onTap: () {
                   // TODO: View Wallet Details
                 },
+                isPrimary: false,
               ),
             ],
           ),
@@ -109,28 +113,42 @@ class _WalletBalanceCardState extends State<WalletBalanceCard> {
     required IconData icon,
     required String label,
     required VoidCallback onTap,
+    required bool isPrimary,
   }) {
-    return InkWell(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.1),
-          borderRadius: BorderRadius.circular(30),
-        ),
-        child: Row(
-          children: [
-            Icon(icon, color: Colors.white, size: 18),
-            const SizedBox(width: 8),
-            Text(
-              label,
-              style: const TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.w600,
-                fontSize: 14,
-              ),
+    final cs = Theme.of(context).colorScheme;
+    
+    return Expanded(
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(8),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          decoration: BoxDecoration(
+            color: isPrimary ? cs.secondary : Colors.transparent,
+            border: Border.all(
+              color: isPrimary ? cs.secondary : Colors.white.withValues(alpha: 0.3),
             ),
-          ],
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                icon, 
+                color: isPrimary ? cs.primary : Colors.white, 
+                size: 16
+              ),
+              const SizedBox(width: 8),
+              Text(
+                label,
+                style: TextStyle(
+                  color: isPrimary ? cs.primary : Colors.white,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 13,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

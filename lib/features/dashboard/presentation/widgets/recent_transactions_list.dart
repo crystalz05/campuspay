@@ -11,7 +11,6 @@ class RecentTransactionsList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final cs = theme.colorScheme;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -21,9 +20,7 @@ class RecentTransactionsList extends StatelessWidget {
           children: [
             Text(
               'Recent Transactions',
-              style: theme.textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+              style: theme.textTheme.titleLarge,
             ),
             TextButton(
               onPressed: () {
@@ -52,8 +49,9 @@ class RecentTransactionsList extends StatelessWidget {
                 physics: const NeverScrollableScrollPhysics(),
                 itemCount: state.transactions.length,
                 separatorBuilder: (context, index) => Divider(
-                  color: cs.outline.withValues(alpha: 0.1),
+                  color: Theme.of(context).dividerColor,
                   height: 1,
+                  thickness: 1,
                 ),
                 itemBuilder: (context, index) {
                   final tx = state.transactions[index];
@@ -66,7 +64,7 @@ class RecentTransactionsList extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(vertical: 24.0),
                   child: Text(
                     state.message,
-                    style: TextStyle(color: cs.error),
+                    style: TextStyle(color: theme.colorScheme.error),
                   ),
                 ),
               );
@@ -85,8 +83,8 @@ class RecentTransactionsList extends StatelessWidget {
         child: Column(
           children: [
             Icon(
-              Icons.history_rounded,
-              size: 48,
+              Icons.history_outlined,
+              size: 40,
               color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.3),
             ),
             const SizedBox(height: 16),
@@ -112,24 +110,28 @@ class _TransactionItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final cs = theme.colorScheme;
-    final currencyFormat = NumberFormat.currency(symbol: '₦', decimalDigits: 0);
+    final currencyFormat = NumberFormat.currency(symbol: '₦', decimalDigits: 2);
     final dateFormat = DateFormat('MMM dd, yyyy');
+
+    final bool isCredit = transaction.type == TransactionType.transfer && 
+                          transaction.description?.toLowerCase().contains('received') == true;
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 16.0),
       child: Row(
         children: [
           Container(
-            width: 48,
-            height: 48,
+            width: 44,
+            height: 44,
             decoration: BoxDecoration(
-              color: _getTypeColor(transaction.type).withValues(alpha: 0.1),
+              border: Border.all(color: theme.dividerColor),
               shape: BoxShape.circle,
+              color: cs.surface,
             ),
             child: Icon(
               _getTypeIcon(transaction.type),
-              color: _getTypeColor(transaction.type),
-              size: 24,
+              color: _getTypeColor(transaction.type, cs),
+              size: 20,
             ),
           ),
           const SizedBox(width: 16),
@@ -140,15 +142,15 @@ class _TransactionItem extends StatelessWidget {
                 Text(
                   _getTitle(transaction),
                   style: theme.textTheme.bodyLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.w600,
                   ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 4),
                 Text(
                   dateFormat.format(transaction.createdAt),
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: cs.outline,
-                  ),
+                  style: theme.textTheme.bodySmall,
                 ),
               ],
             ),
@@ -157,16 +159,13 @@ class _TransactionItem extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Text(
-                currencyFormat.format(transaction.amount),
+                '${isCredit ? '+' : ''}${currencyFormat.format(transaction.amount)}',
                 style: theme.textTheme.bodyLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: transaction.type == TransactionType.transfer && 
-                         transaction.description?.toLowerCase().contains('received') == true
-                      ? Colors.green
-                      : null,
+                  fontWeight: FontWeight.w600,
+                  color: isCredit ? Colors.green.shade700 : null,
                 ),
               ),
-              const SizedBox(height: 4),
+              const SizedBox(height: 6),
               _StatusBadge(status: transaction.status),
             ],
           ),
@@ -178,9 +177,9 @@ class _TransactionItem extends StatelessWidget {
   String _getTitle(TransactionEntity tx) {
     switch (tx.type) {
       case TransactionType.fee:
-        return 'School Fee Payment';
+        return 'School Fee Checkout';
       case TransactionType.data:
-        return 'Data Purchase';
+        return 'Data Top-Up';
       case TransactionType.transfer:
         return tx.description ?? 'Wallet Transfer';
     }
@@ -189,23 +188,16 @@ class _TransactionItem extends StatelessWidget {
   IconData _getTypeIcon(TransactionType type) {
     switch (type) {
       case TransactionType.fee:
-        return Icons.school_rounded;
+        return Icons.school_outlined;
       case TransactionType.data:
-        return Icons.wifi_rounded;
+        return Icons.wifi_protected_setup_outlined;
       case TransactionType.transfer:
-        return Icons.swap_horiz_rounded;
+        return Icons.outbox_outlined;
     }
   }
 
-  Color _getTypeColor(TransactionType type) {
-    switch (type) {
-      case TransactionType.fee:
-        return const Color(0xFF6366F1);
-      case TransactionType.data:
-        return const Color(0xFF10B981);
-      case TransactionType.transfer:
-        return const Color(0xFFF59E0B);
-    }
+  Color _getTypeColor(TransactionType type, ColorScheme cs) {
+    return cs.primary; // Elegant minimal single color for icons
   }
 }
 
@@ -221,31 +213,32 @@ class _StatusBadge extends StatelessWidget {
 
     switch (status) {
       case TransactionStatus.success:
-        color = Colors.green;
-        label = 'Success';
+        color = Colors.green.shade700;
+        label = 'SUCCESS';
         break;
       case TransactionStatus.failed:
-        color = Colors.red;
-        label = 'Failed';
+        color = Theme.of(context).colorScheme.error;
+        label = 'FAILED';
         break;
       case TransactionStatus.pending:
-        color = Colors.orange;
-        label = 'Pending';
+        color = Theme.of(context).colorScheme.secondary;
+        label = 'PENDING';
         break;
     }
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
+        border: Border.all(color: color.withValues(alpha: 0.5)),
         borderRadius: BorderRadius.circular(4),
       ),
       child: Text(
         label,
         style: TextStyle(
           color: color,
-          fontSize: 10,
-          fontWeight: FontWeight.bold,
+          fontSize: 9,
+          fontWeight: FontWeight.w700,
+          letterSpacing: 0.5,
         ),
       ),
     );

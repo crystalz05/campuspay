@@ -42,7 +42,7 @@ class SettingsScreen extends StatelessWidget {
                   icon: Icons.lock_outline_rounded,
                   label: 'Change Transaction PIN',
                   onTap: () {
-                    context.push('/set-pin');
+                    // TODO: Navigate to set pin
                   },
                 ),
                 _SettingsTile(
@@ -50,7 +50,7 @@ class SettingsScreen extends StatelessWidget {
                   label: 'Academic Details',
                   subtitle: user?.institution ?? 'Not set',
                   onTap: () {
-                    context.push('/complete-profile');
+                    // TODO: Navigate to update academic details
                   },
                 ),
                 const SizedBox(height: 8),
@@ -83,7 +83,7 @@ class SettingsScreen extends StatelessWidget {
                   isDestructive: true,
                   onTap: () => _showLogoutConfirmation(context),
                 ),
-                const SizedBox(height: 32),
+                const SizedBox(height: 120),
               ],
             );
           },
@@ -166,7 +166,7 @@ class _ProfileCard extends StatelessWidget {
                   Text(
                     user.matricNumber,
                     style: theme.textTheme.bodySmall?.copyWith(
-                      color: cs.secondary,
+                      color: cs.primary,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -227,7 +227,7 @@ class _SettingsTile extends StatelessWidget {
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         tileColor: cs.surface,
-        leading: Icon(icon, color: isDestructive ? cs.error : cs.secondary, size: 22),
+        leading: Icon(icon, color: isDestructive ? cs.error : cs.primary, size: 22),
         title: Text(
           label,
           style: Theme.of(context).textTheme.bodyLarge?.copyWith(

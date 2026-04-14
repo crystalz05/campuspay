@@ -20,10 +20,7 @@ class DashboardHeader extends StatelessWidget {
           children: [
             Text(
               'Hello, ${fullName.split(' ')[0]}',
-              style: theme.textTheme.displayMedium?.copyWith(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-              ),
+              style: theme.textTheme.displayMedium,
             ),
             const SizedBox(height: 4),
             Text(

@@ -44,7 +44,6 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
       appBar: AppBar(
         title: const Text('Complete Profile'),
         automaticallyImplyLeading: false,
-        centerTitle: true,
       ),
       body: BlocListener<AuthBloc, CampusAuthState>(
         listener: (context, state) {
@@ -54,7 +53,12 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
             context.go('/set-pin');
           } else if (state is CampusAuthError) {
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(state.message), backgroundColor: cs.error),
+              SnackBar(
+                content: Text(state.message), 
+                backgroundColor: cs.error,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                behavior: SnackBarBehavior.floating,
+              ),
             );
           }
         },
@@ -73,22 +77,20 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
                       children: [
                         const SizedBox(height: 24),
                         Text(
-                          'Final Step',
+                          'Almost There',
                           style: Theme.of(context).textTheme.displayMedium,
-                          textAlign: TextAlign.center,
                         ),
                         const SizedBox(height: 8),
                         Text(
                           'Please provide your academic details to continue.',
                           style: Theme.of(context).textTheme.bodyMedium,
-                          textAlign: TextAlign.center,
                         ),
-                        const SizedBox(height: 32),
+                        const SizedBox(height: 48),
                         TextFormField(
                           controller: _matricController,
                           decoration: const InputDecoration(
-                            hintText: 'Matric Number',
-                            prefixIcon: Icon(Icons.badge_outlined),
+                            hintText: 'Matriculation Number',
+                            prefixIcon: Icon(Icons.badge_outlined, size: 22),
                           ),
                           validator: (value) => value == null || value.isEmpty
                               ? 'Please enter your matric number'
@@ -98,11 +100,11 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
                         TextFormField(
                           controller: _institutionController,
                           decoration: const InputDecoration(
-                            hintText: 'Institution',
-                            prefixIcon: Icon(Icons.school_outlined),
+                            hintText: 'Institution Name',
+                            prefixIcon: Icon(Icons.account_balance_outlined, size: 22),
                           ),
                           validator: (value) =>
-                              value == null || value.isEmpty ? 'Please enter your school' : null,
+                              value == null || value.isEmpty ? 'Please enter your institution' : null,
                         ),
                         const SizedBox(height: 48),
                         BlocBuilder<AuthBloc, CampusAuthState>(
@@ -110,26 +112,24 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
                             return ElevatedButton(
                               onPressed: state is CampusAuthLoading ? null : _onComplete,
                               child: state is CampusAuthLoading
-                                  ? const SizedBox(
+                                  ? SizedBox(
                                       height: 20,
                                       width: 20,
-                                      child: CircularProgressIndicator(strokeWidth: 2),
+                                      child: CircularProgressIndicator(strokeWidth: 2.5, color: cs.onPrimary),
                                     )
                                   : const Text('Complete & Next'),
                             );
                           },
                         ),
-                        const SizedBox(height: 16),
+                        const SizedBox(height: 24),
                         Center(
-                          child: TextButton(
+                          child: TextButton.icon(
+                            icon: const Icon(Icons.logout_rounded, size: 18),
                             onPressed: () => context.read<AuthBloc>().add(LogoutEvent()),
-                            child: Text(
-                              'Logout',
-                              style: TextStyle(color: cs.error),
-                            ),
+                            label: const Text('Log Out'),
                           ),
                         ),
-                        const SizedBox(height: 24),
+                        const SizedBox(height: 40),
                       ],
                     ),
                   ),

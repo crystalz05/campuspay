@@ -10,42 +10,36 @@ class QuickActionsGrid extends StatelessWidget {
       children: [
         Text(
           'Quick Actions',
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-            fontWeight: FontWeight.bold,
-          ),
+          style: Theme.of(context).textTheme.titleLarge,
         ),
         const SizedBox(height: 16),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
             _QuickActionItem(
-              icon: Icons.school_rounded,
+              icon: Icons.school_outlined,
               label: 'Pay Fees',
-              color: const Color(0xFF6366F1), // Indigo
               onTap: () {
                 // TODO: Navigate to Pay Fees
               },
             ),
             _QuickActionItem(
-              icon: Icons.wifi_rounded,
+              icon: Icons.wifi_protected_setup_outlined,
               label: 'Buy Data',
-              color: const Color(0xFF10B981), // Emerald
               onTap: () {
                 // TODO: Navigate to Buy Data
               },
             ),
             _QuickActionItem(
-              icon: Icons.send_rounded,
+              icon: Icons.outbox_outlined,
               label: 'Transfer',
-              color: const Color(0xFFF59E0B), // Amber
               onTap: () {
                 // TODO: Navigate to Transfer
               },
             ),
             _QuickActionItem(
-              icon: Icons.receipt_long_rounded,
+              icon: Icons.receipt_long_outlined,
               label: 'History',
-              color: const Color(0xFFEF4444), // Red
               onTap: () {
                 // TODO: Navigate to History
               },
@@ -60,38 +54,38 @@ class QuickActionsGrid extends StatelessWidget {
 class _QuickActionItem extends StatelessWidget {
   final IconData icon;
   final String label;
-  final Color color;
   final VoidCallback onTap;
 
   const _QuickActionItem({
     required this.icon,
     required this.label,
-    required this.color,
     required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    
     return Column(
       children: [
         InkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(12),
           child: Container(
             width: 56,
             height: 56,
             decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: cs.primary.withValues(alpha: 0.2)),
+              borderRadius: BorderRadius.circular(12),
+              color: cs.surface,
             ),
-            child: Icon(icon, color: color, size: 28),
+            child: Icon(icon, color: cs.primary, size: 24),
           ),
         ),
         const SizedBox(height: 8),
         Text(
           label,
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-            fontSize: 12,
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
             fontWeight: FontWeight.w600,
           ),
           textAlign: TextAlign.center,

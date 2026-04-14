@@ -39,27 +39,37 @@ class _SetPinScreenState extends State<SetPinScreen> {
     final cs = Theme.of(context).colorScheme;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Security PIN'), centerTitle: true),
+      appBar: AppBar(
+        title: const Text('Security PIN'),
+        automaticallyImplyLeading: false, // Prevents back button to incomplete profile
+      ),
       body: BlocListener<AuthBloc, CampusAuthState>(
         listener: (context, state) {
           if (state is CampusAuthPinSetupSuccess || state is CampusAuthAuthenticated) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Transaction PIN set successfully!'),
-                backgroundColor: CampusPayTheme.success,
+              SnackBar(
+                content: const Text('Transaction PIN set successfully!'),
+                backgroundColor: CampusPayTheme.successGreen,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                behavior: SnackBarBehavior.floating,
               ),
             );
             context.go('/dashboard');
           } else if (state is CampusAuthError) {
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(state.message), backgroundColor: cs.error),
+              SnackBar(
+                content: Text(state.message), 
+                backgroundColor: cs.error,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                behavior: SnackBarBehavior.floating,
+              ),
             );
           }
         },
         child: LayoutBuilder(
           builder: (context, constraints) {
             return SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 32.0),
+              padding: const EdgeInsets.symmetric(horizontal: 24.0),
               child: ConstrainedBox(
                 constraints: BoxConstraints(minHeight: constraints.maxHeight),
                 child: Column(
@@ -68,7 +78,7 @@ class _SetPinScreenState extends State<SetPinScreen> {
                   children: [
                     const SizedBox(height: 24),
                     Text(
-                      'Set Transaction PIN',
+                      'Secure Your \nTransactions',
                       style: Theme.of(context).textTheme.displayMedium,
                       textAlign: TextAlign.center,
                     ),
@@ -86,7 +96,7 @@ class _SetPinScreenState extends State<SetPinScreen> {
                       onChanged: (value) {
                         setState(() {
                           _pin = value;
-                          _errorText = null;
+                          if (_errorText != null) _errorText = null;
                         });
                       },
                     ),
@@ -99,16 +109,16 @@ class _SetPinScreenState extends State<SetPinScreen> {
                       onChanged: (value) {
                         setState(() {
                           _confirmPin = value;
-                          _errorText = null;
+                          if (_errorText != null) _errorText = null;
                         });
                       },
                     ),
 
                     if (_errorText != null) ...[
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 16),
                       Text(
                         _errorText!,
-                        style: TextStyle(color: cs.error, fontSize: 13),
+                        style: TextStyle(color: cs.error, fontSize: 14, fontWeight: FontWeight.w500),
                         textAlign: TextAlign.center,
                       ),
                     ],
@@ -119,14 +129,22 @@ class _SetPinScreenState extends State<SetPinScreen> {
                         return ElevatedButton(
                           onPressed: state is CampusAuthLoading ? null : _onSubmit,
                           child: state is CampusAuthLoading
-                              ? const SizedBox(
+                              ? SizedBox(
                                   height: 20,
                                   width: 20,
-                                  child: CircularProgressIndicator(strokeWidth: 2),
+                                  child: CircularProgressIndicator(strokeWidth: 2.5, color: cs.onPrimary),
                                 )
                               : const Text('Set PIN & Continue'),
                         );
                       },
+                    ),
+                    const SizedBox(height: 24),
+                    Center(
+                      child: TextButton.icon(
+                        icon: const Icon(Icons.logout_rounded, size: 18),
+                        onPressed: () => context.read<AuthBloc>().add(LogoutEvent()),
+                        label: const Text('Log Out'),
+                      ),
                     ),
                     const SizedBox(height: 32),
                   ],
@@ -143,8 +161,8 @@ class _SetPinScreenState extends State<SetPinScreen> {
     return Text(
       text,
       style: Theme.of(context).textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.bold,
-            color: Theme.of(context).colorScheme.secondary,
+            fontWeight: FontWeight.w600,
+            color: Theme.of(context).colorScheme.primary,
           ),
       textAlign: TextAlign.center,
     );
@@ -152,7 +170,7 @@ class _SetPinScreenState extends State<SetPinScreen> {
 }
 
 /// A standalone OTP-style 4-digit PIN input widget that uses a hidden
-/// [TextField] to capture keyboard events and renders 4 visual boxes.
+/// [TextField] to capture keyboard events and renders 4 elegant visual boxes.
 class _OtpPinField extends StatefulWidget {
   final ValueChanged<String> onChanged;
 
@@ -187,8 +205,7 @@ class _OtpPinFieldState extends State<_OtpPinField> {
       child: Stack(
         alignment: Alignment.center,
         children: [
-          // Hidden text field — positioned off-screen so it captures input
-          // without painting any background over the custom boxes.
+          // Hidden text field
           Positioned(
             left: -9999,
             child: SizedBox(
@@ -227,39 +244,42 @@ class _OtpPinFieldState extends State<_OtpPinField> {
                   final isFilled = index < pin.length;
                   final isFocused = _focusNode.hasFocus && index == pin.length.clamp(0, 3);
 
+                  final borderColor = isFocused
+                      ? cs.primary
+                      : isFilled
+                          ? cs.primary.withValues(alpha: 0.5)
+                          : Theme.of(context).dividerColor;
+
                   return AnimatedContainer(
-                    duration: const Duration(milliseconds: 150),
-                    width: 60,
-                    height: 68,
+                    duration: const Duration(milliseconds: 200),
+                    curve: Curves.easeOut,
+                    width: 56,
+                    height: 64,
                     decoration: BoxDecoration(
                       border: Border.all(
-                        color: isFocused
-                            ? cs.secondary
-                            : isFilled
-                                ? cs.secondary.withValues(alpha: 0.6)
-                                : cs.outline.withValues(alpha: 0.35),
-                        width: isFocused ? 2 : 1.5,
+                        color: borderColor,
+                        width: isFocused ? 1.5 : 1.0,
                       ),
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(8),
                       color: isFilled
-                          ? cs.secondary.withValues(alpha: 0.08)
+                          ? cs.primary.withValues(alpha: 0.04)
                           : cs.surface,
                     ),
                     child: Center(
                       child: isFilled
                           ? Container(
-                              width: 12,
-                              height: 12,
+                              width: 10,
+                              height: 10,
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
-                                color: cs.secondary,
+                                color: cs.primary,
                               ),
                             )
                           : isFocused
                               ? Container(
-                                  width: 2,
+                                  width: 1.5,
                                   height: 24,
-                                  color: cs.secondary,
+                                  color: cs.primary,
                                 )
                               : null,
                     ),

@@ -26,81 +26,16 @@ class _LoginView extends StatefulWidget {
   State<_LoginView> createState() => _LoginViewState();
 }
 
-class _LoginViewState extends State<_LoginView>
-    with SingleTickerProviderStateMixin {
+class _LoginViewState extends State<_LoginView> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   bool _obscurePassword = true;
 
-  late final AnimationController _controller;
-  late final Animation<double> _logoFade;
-  late final Animation<double> _logoScale;
-  late final Animation<Offset> _headerSlide;
-  late final Animation<Offset> _emailSlide;
-  late final Animation<Offset> _passwordSlide;
-  late final Animation<Offset> _buttonSlide;
-  late final Animation<double> _contentFade;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-       vsync: this,
-      duration: const Duration(milliseconds: 1100),
-    );
-
-    _logoFade = CurvedAnimation(
-      parent: _controller,
-      curve: const Interval(0.0, 0.5, curve: Curves.easeOut),
-    );
-    _logoScale = Tween<double>(begin: 0.6, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _controller,
-        curve: const Interval(0.0, 0.5, curve: Curves.easeOutBack),
-      ),
-    );
-    _headerSlide = Tween<Offset>(
-      begin: const Offset(0, 0.4),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(
-      parent: _controller,
-      curve: const Interval(0.2, 0.6, curve: Curves.easeOut),
-    ));
-    _contentFade = CurvedAnimation(
-      parent: _controller,
-      curve: const Interval(0.2, 0.7, curve: Curves.easeOut),
-    );
-    _emailSlide = Tween<Offset>(
-      begin: const Offset(0, 0.5),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(
-      parent: _controller,
-      curve: const Interval(0.35, 0.75, curve: Curves.easeOut),
-    ));
-    _passwordSlide = Tween<Offset>(
-      begin: const Offset(0, 0.5),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(
-      parent: _controller,
-      curve: const Interval(0.45, 0.85, curve: Curves.easeOut),
-    ));
-    _buttonSlide = Tween<Offset>(
-      begin: const Offset(0, 0.5),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(
-      parent: _controller,
-      curve: const Interval(0.55, 0.95, curve: Curves.easeOut),
-    ));
-
-    _controller.forward();
-  }
-
   @override
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
-    _controller.dispose();
     super.dispose();
   }
 
@@ -133,7 +68,6 @@ class _LoginViewState extends State<_LoginView>
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
-        resizeToAvoidBottomInset: false, // Better for vertical centering when keyboard is not visible
         body: SafeArea(
           child: BlocConsumer<AuthBloc, CampusAuthState>(
             listener: (context, state) {
@@ -143,7 +77,7 @@ class _LoginViewState extends State<_LoginView>
                     content: Text(state.message),
                     backgroundColor: cs.error,
                     behavior: SnackBarBehavior.floating,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                   ),
                 );
               } else {
@@ -154,7 +88,6 @@ class _LoginViewState extends State<_LoginView>
               return LayoutBuilder(
                 builder: (context, constraints) {
                   return SingleChildScrollView(
-                    keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
                     padding: const EdgeInsets.symmetric(horizontal: 24),
                     child: ConstrainedBox(
                       constraints: BoxConstraints(minHeight: constraints.maxHeight),
@@ -165,116 +98,94 @@ class _LoginViewState extends State<_LoginView>
                             mainAxisAlignment: MainAxisAlignment.center,
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
-                              const SizedBox(height: 24),
-                              // ── Animated Logo ──────────────────────
-                              FadeTransition(
-                                opacity: _logoFade,
-                                child: ScaleTransition(
-                                  scale: _logoScale,
-                                  child: Center(
-                                    child: Container(
-                                      width: 80, height: 80,
-                                      decoration: BoxDecoration(
-                                        color: cs.primary,
-                                        borderRadius: BorderRadius.circular(22),
-                                        boxShadow: [
-                                          BoxShadow(
-                                            color: cs.secondary.withValues(alpha: 0.3),
-                                            blurRadius: 24, offset: const Offset(0, 6),
-                                          ),
-                                        ],
-                                      ),
-                                      child: Icon(Icons.account_balance_wallet_rounded, size: 44, color: cs.secondary),
-                                    ),
+                              const SizedBox(height: 48),
+                              
+                              // ── Minimalist Logo/Icon ──────────────────────
+                              Center(
+                                child: Container(
+                                  padding: const EdgeInsets.all(16),
+                                  decoration: BoxDecoration(
+                                    border: Border.all(color: cs.primary.withValues(alpha: 0.1), width: 1.5),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: Icon(
+                                    Icons.account_balance_rounded, 
+                                    size: 40, 
+                                    color: cs.primary
                                   ),
                                 ),
                               ),
-                              const SizedBox(height: 28),
-                              // ── Animated Header ────────────────────
-                              FadeTransition(
-                                opacity: _contentFade,
-                                child: SlideTransition(
-                                  position: _headerSlide,
-                                  child: Column(
-                                    children: [
-                                      Text('Welcome Back', style: theme.textTheme.displayMedium, textAlign: TextAlign.center),
-                                      const SizedBox(height: 6),
-                                      Text('Login to your CampusPay account', style: theme.textTheme.bodyMedium, textAlign: TextAlign.center),
-                                    ],
-                                  ),
-                                ),
+                              const SizedBox(height: 40),
+                              
+                              // ── Elegant Header ────────────────────
+                              Text(
+                                'Welcome Back', 
+                                style: theme.textTheme.displayMedium, 
+                                textAlign: TextAlign.center
                               ),
-                              const SizedBox(height: 44),
-                              // ── Animated Email Field ───────────────
-                              FadeTransition(
-                                opacity: _contentFade,
-                                child: SlideTransition(
-                                  position: _emailSlide,
-                                  child: TextFormField(
-                                    controller: _emailController,
-                                    keyboardType: TextInputType.emailAddress,
-                                    decoration: const InputDecoration(hintText: 'Email Address', prefixIcon: Icon(Icons.email_outlined)),
-                                    validator: (value) => (value == null || !value.contains('@')) ? 'Enter a valid email' : null,
-                                  ),
+                              const SizedBox(height: 8),
+                              Text(
+                                'Sign in to continue to CampusPay.', 
+                                style: theme.textTheme.bodyMedium, 
+                                textAlign: TextAlign.center
+                              ),
+                              const SizedBox(height: 48),
+                              
+                              // ── Form Inputs ───────────────
+                              TextFormField(
+                                controller: _emailController,
+                                keyboardType: TextInputType.emailAddress,
+                                decoration: const InputDecoration(
+                                  hintText: 'Email Address', 
+                                  prefixIcon: Icon(Icons.email_outlined, size: 22)
                                 ),
+                                validator: (value) => (value == null || !value.contains('@')) ? 'Enter a valid email' : null,
                               ),
                               const SizedBox(height: 16),
-                              // ── Animated Password Field ────────────
-                              FadeTransition(
-                                opacity: _contentFade,
-                                child: SlideTransition(
-                                  position: _passwordSlide,
-                                  child: TextFormField(
-                                    controller: _passwordController,
-                                    obscureText: _obscurePassword,
-                                    decoration: InputDecoration(
-                                      hintText: 'Password',
-                                      prefixIcon: const Icon(Icons.lock_outline),
-                                      suffixIcon: IconButton(
-                                        icon: Icon(_obscurePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined),
-                                        onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
-                                      ),
-                                    ),
-                                    validator: (value) => (value == null || value.isEmpty) ? 'Please enter your password' : null,
+                              
+                              TextFormField(
+                                controller: _passwordController,
+                                obscureText: _obscurePassword,
+                                decoration: InputDecoration(
+                                  hintText: 'Password',
+                                  prefixIcon: const Icon(Icons.lock_outline, size: 22),
+                                  suffixIcon: IconButton(
+                                    icon: Icon(_obscurePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined, size: 22),
+                                    onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
                                   ),
                                 ),
+                                validator: (value) => (value == null || value.isEmpty) ? 'Please enter your password' : null,
                               ),
-                              const SizedBox(height: 4),
+                              const SizedBox(height: 8),
+                              
                               // ── Forgot Password ────────────────────
-                              FadeTransition(
-                                opacity: _contentFade,
-                                child: Align(
-                                  alignment: Alignment.centerRight,
-                                  child: TextButton(onPressed: () => context.push('/forgot-password'), child: const Text('Forgot Password?')),
+                              Align(
+                                alignment: Alignment.centerRight,
+                                child: TextButton(
+                                  onPressed: () => context.push('/forgot-password'), 
+                                  child: const Text('Forgot Password?')
                                 ),
                               ),
-                              const SizedBox(height: 20),
-                              // ── Animated Button ────────────────────
-                              FadeTransition(
-                                opacity: _contentFade,
-                                child: SlideTransition(
-                                  position: _buttonSlide,
-                                  child: ElevatedButton(
-                                    onPressed: state is CampusAuthLoading ? null : _onLoginPressed,
-                                    child: state is CampusAuthLoading
-                                        ? const SizedBox(height: 22, width: 22, child: CircularProgressIndicator(strokeWidth: 2.5, color: Colors.white))
-                                        : const Text('Login'),
-                                  ),
-                                ),
+                              const SizedBox(height: 32),
+                              
+                              // ── Solid Button ────────────────────
+                              ElevatedButton(
+                                onPressed: state is CampusAuthLoading ? null : _onLoginPressed,
+                                child: state is CampusAuthLoading
+                                    ? SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2.5, color: cs.onPrimary))
+                                    : const Text('Sign In'),
                               ),
-                              const SizedBox(height: 24),
+                              const SizedBox(height: 32),
+                              
                               // ── Register Link ──────────────────────
-                              FadeTransition(
-                                opacity: _contentFade,
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Text("Don't have an account?", style: theme.textTheme.bodyMedium),
-                                    TextButton(onPressed: () => context.push('/register'), child: const Text('Register')),
-                                  ],
-                                ),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text("Don't have an account?", style: theme.textTheme.bodyMedium),
+                                  TextButton(onPressed: () => context.push('/register'), child: const Text('Create Account')),
+                                ],
                               ),
-                              const SizedBox(height: 24),
+                              const Spacer(),
                             ],
                           ),
                         ),
