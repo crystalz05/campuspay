@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 class QuickActionsGrid extends StatelessWidget {
   const QuickActionsGrid({super.key});
@@ -20,7 +21,7 @@ class QuickActionsGrid extends StatelessWidget {
               icon: Icons.school_outlined,
               label: 'Pay Fees',
               onTap: () {
-                // TODO: Navigate to Pay Fees
+                context.push('/pay-fees');
               },
             ),
             _QuickActionItem(

@@ -40,6 +40,7 @@ class AuthBloc extends Bloc<AuthEvent, CampusAuthState> {
     required this.completeProfileUseCase,
   }) : super(CampusAuthInitial()) {
     on<CheckAuthStatusEvent>(_onCheckAuthStatus);
+    on<RefreshUserEvent>(_onRefreshUser);
     on<LoginEvent>(_onLogin);
     on<RegisterEvent>(_onRegister);
     on<LogoutEvent>(_onLogout);
@@ -117,6 +118,24 @@ class AuthBloc extends Bloc<AuthEvent, CampusAuthState> {
           emit(_determineNextState(user));
         } else {
           emit(CampusAuthUnauthenticated());
+        }
+      },
+    );
+  }
+
+  Future<void> _onRefreshUser(
+    RefreshUserEvent event,
+    Emitter<CampusAuthState> emit,
+  ) async {
+    // Only refresh quietly if they are already authenticated.
+    if (state is! CampusAuthAuthenticated) return;
+    
+    final result = await getCurrentUserUseCase(NoParams());
+    result.fold(
+      (failure) => null, // Silently ignore failures on background refresh
+      (user) {
+        if (user != null) {
+          emit(CampusAuthAuthenticated(user: user));
         }
       },
     );

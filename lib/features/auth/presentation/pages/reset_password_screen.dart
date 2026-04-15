@@ -30,7 +30,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
   void _onSubmit() {
     if (_formKey.currentState!.validate()) {
       context.read<AuthBloc>().add(
-            ResetPasswordEvent(newPassword: _passwordController.text),
+            ResetPasswordEvent(_passwordController.text),
           );
     }
   }

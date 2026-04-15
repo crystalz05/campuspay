@@ -31,7 +31,7 @@ class _SetPinScreenState extends State<SetPinScreen> {
       return;
     }
     setState(() => _errorText = null);
-    context.read<AuthBloc>().add(SetTransactionPinEvent(pin: _pin));
+    context.read<AuthBloc>().add(SetTransactionPinEvent(_pin));
   }
 
   @override

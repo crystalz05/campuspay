@@ -62,7 +62,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         const QuickActionsGrid(),
                         const SizedBox(height: 32),
                         const RecentTransactionsList(),
-                        const SizedBox(height: 120),
+                        const SizedBox(height: 20),
                       ],
                     ),
                   ),

@@ -15,7 +15,18 @@ import '../../features/dashboard/presentation/pages/dashboard_screen.dart';
 import '../../features/dashboard/presentation/pages/placeholders.dart';
 import '../../features/dashboard/presentation/pages/settings_screen.dart';
 import '../../features/dashboard/presentation/widgets/main_nav_wrapper.dart';
+import '../../features/fee_payment/domain/entities/fee_payment_entity.dart';
+import '../../features/fee_payment/presentation/pages/fee_confirm_screen.dart';
+import '../../features/fee_payment/presentation/pages/payment_result_screen.dart';
+import '../../features/fee_payment/presentation/pages/rrr_entry_screen.dart';
+import '../../features/fund_wallet/presentation/pages/fund_amount_screen.dart';
+import '../../features/fund_wallet/presentation/pages/fund_result_screen.dart';
+import '../../features/fund_wallet/presentation/pages/mock_payment_method_screen.dart';
 import '../../features/splash/presentation/pages/splash_screen.dart';
+import '../../features/dashboard/domain/entities/transaction_entity.dart';
+import '../../features/fee_payment/presentation/bloc/fee_payment_bloc.dart';
+import '../../features/fund_wallet/presentation/bloc/fund_wallet_bloc.dart';
+import '../../injection_container.dart';
 
 class GoRouterRefreshStream extends ChangeNotifier {
   GoRouterRefreshStream(Stream<dynamic> stream) {
@@ -35,15 +46,15 @@ class GoRouterRefreshStream extends ChangeNotifier {
 }
 
 class AppRouter {
-  static final GlobalKey<NavigatorState> _rootNavigatorKey = GlobalKey<NavigatorState>();
-  static final GlobalKey<NavigatorState> _shellHomeKey = GlobalKey<NavigatorState>(debugLabel: 'shellHome');
-  static final GlobalKey<NavigatorState> _shellHistoryKey = GlobalKey<NavigatorState>(debugLabel: 'shellHistory');
-  static final GlobalKey<NavigatorState> _shellPayKey = GlobalKey<NavigatorState>(debugLabel: 'shellPay');
-  static final GlobalKey<NavigatorState> _shellProfileKey = GlobalKey<NavigatorState>(debugLabel: 'shellProfile');
-
   static GoRouter createRouter(AuthBloc authBloc) {
+    final rootNavigatorKey = GlobalKey<NavigatorState>();
+    final shellHomeKey = GlobalKey<NavigatorState>(debugLabel: 'shellHome');
+    final shellHistoryKey = GlobalKey<NavigatorState>(debugLabel: 'shellHistory');
+    final shellPayKey = GlobalKey<NavigatorState>(debugLabel: 'shellPay');
+    final shellProfileKey = GlobalKey<NavigatorState>(debugLabel: 'shellProfile');
+
     return GoRouter(
-      navigatorKey: _rootNavigatorKey,
+      navigatorKey: rootNavigatorKey,
       initialLocation: '/',
       refreshListenable: GoRouterRefreshStream(authBloc.stream),
       redirect: (context, state) {
@@ -107,6 +118,60 @@ class AppRouter {
         GoRoute(path: '/complete-profile', builder: (context, state) => const CompleteProfileScreen()),
         GoRoute(path: '/set-pin', builder: (context, state) => const SetPinScreen()),
 
+        // ── Fee Payment Flow ─────────────────────────────────────────
+        ShellRoute(
+          builder: (context, state, child) {
+            return BlocProvider<FeePaymentBloc>(
+              create: (_) => sl<FeePaymentBloc>(),
+              child: child,
+            );
+          },
+          routes: [
+            GoRoute(
+              path: '/pay-fees',
+              builder: (context, state) => const RrrEntryScreen(),
+            ),
+            GoRoute(
+              path: '/pay-fees/confirm',
+              builder: (context, state) {
+                final details = state.extra as FeePaymentEntity;
+                return FeeConfirmScreen(details: details);
+              },
+            ),
+            GoRoute(
+              path: '/pay-fees/result',
+              builder: (context, state) => const PaymentResultScreen(),
+            ),
+          ],
+        ),
+
+        // ── Fund Wallet Flow ─────────────────────────────────────────
+        ShellRoute(
+          builder: (context, state, child) {
+            return BlocProvider<FundWalletBloc>(
+              create: (_) => sl<FundWalletBloc>(),
+              child: child,
+            );
+          },
+          routes: [
+            GoRoute(
+              path: '/fund-wallet',
+              builder: (context, state) => const FundAmountScreen(),
+            ),
+            GoRoute(
+              path: '/fund-wallet/method',
+              builder: (context, state) {
+                final amount = state.extra as double;
+                return MockPaymentMethodScreen(amount: amount);
+              },
+            ),
+            GoRoute(
+              path: '/fund-wallet/result',
+              builder: (context, state) => const FundResultScreen(),
+            ),
+          ],
+        ),
+
         // ── Authenticated Shell (Bottom Nav) ─────────────────────────────
         StatefulShellRoute.indexedStack(
           builder: (context, state, navigationShell) =>
@@ -114,7 +179,7 @@ class AppRouter {
           branches: [
             // Index 0 — Home
             StatefulShellBranch(
-              navigatorKey: _shellHomeKey,
+              navigatorKey: shellHomeKey,
               routes: [
                 GoRoute(
                   path: '/dashboard',
@@ -124,7 +189,7 @@ class AppRouter {
             ),
             // Index 1 — History
             StatefulShellBranch(
-              navigatorKey: _shellHistoryKey,
+              navigatorKey: shellHistoryKey,
               routes: [
                 GoRoute(
                   path: '/history',
@@ -134,7 +199,7 @@ class AppRouter {
             ),
             // Index 2 — Pay
             StatefulShellBranch(
-              navigatorKey: _shellPayKey,
+              navigatorKey: shellPayKey,
               routes: [
                 GoRoute(
                   path: '/pay',
@@ -144,7 +209,7 @@ class AppRouter {
             ),
             // Index 3 — Profile
             StatefulShellBranch(
-              navigatorKey: _shellProfileKey,
+              navigatorKey: shellProfileKey,
               routes: [
                 GoRoute(
                   path: '/profile',

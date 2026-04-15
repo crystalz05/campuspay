@@ -10,6 +10,8 @@ abstract class AuthEvent extends Equatable {
 
 class CheckAuthStatusEvent extends AuthEvent {}
 
+class RefreshUserEvent extends AuthEvent {} // NEW EVENT: Quietly refreshes user data without loading overlay
+
 class LoginEvent extends AuthEvent {
   final String email;
   final String password;
@@ -53,7 +55,7 @@ class LogoutEvent extends AuthEvent {}
 class ForgotPasswordEvent extends AuthEvent {
   final String email;
 
-  const ForgotPasswordEvent({required this.email});
+  const ForgotPasswordEvent(this.email);
 
   @override
   List<Object?> get props => [email];
@@ -62,7 +64,7 @@ class ForgotPasswordEvent extends AuthEvent {
 class ResetPasswordEvent extends AuthEvent {
   final String newPassword;
 
-  const ResetPasswordEvent({required this.newPassword});
+  const ResetPasswordEvent(this.newPassword);
 
   @override
   List<Object?> get props => [newPassword];
@@ -71,7 +73,7 @@ class ResetPasswordEvent extends AuthEvent {
 class SetTransactionPinEvent extends AuthEvent {
   final String pin;
 
-  const SetTransactionPinEvent({required this.pin});
+  const SetTransactionPinEvent(this.pin);
 
   @override
   List<Object?> get props => [pin];
@@ -85,6 +87,3 @@ class AuthStateChangedEvent extends AuthEvent {
   @override
   List<Object?> get props => [event];
 }
-
-
-

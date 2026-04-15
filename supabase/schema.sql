@@ -4,7 +4,7 @@ create extension if not exists "uuid-ossp";
 -- ========================
 -- ENUMS
 -- ========================
-create type transaction_type as enum ('fee', 'data', 'transfer');
+create type transaction_type as enum ('fee', 'data', 'transfer', 'deposit');
 create type transaction_status as enum ('pending', 'success', 'failed');
 create type notification_type as enum ('transfer', 'fee', 'data', 'system');
 

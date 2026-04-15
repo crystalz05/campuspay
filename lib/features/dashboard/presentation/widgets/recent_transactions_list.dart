@@ -49,9 +49,9 @@ class RecentTransactionsList extends StatelessWidget {
                 physics: const NeverScrollableScrollPhysics(),
                 itemCount: state.transactions.length,
                 separatorBuilder: (context, index) => Divider(
-                  color: Theme.of(context).dividerColor,
+                  color: Theme.of(context).dividerColor.withValues(alpha: 0.2),
                   height: 1,
-                  thickness: 1,
+                  thickness: 0.5,
                 ),
                 itemBuilder: (context, index) {
                   final tx = state.transactions[index];
@@ -124,7 +124,7 @@ class _TransactionItem extends StatelessWidget {
             width: 44,
             height: 44,
             decoration: BoxDecoration(
-              border: Border.all(color: theme.dividerColor),
+              border: Border.all(color: theme.dividerColor, width: 0.5),
               shape: BoxShape.circle,
               color: cs.surface,
             ),
@@ -182,6 +182,8 @@ class _TransactionItem extends StatelessWidget {
         return 'Data Top-Up';
       case TransactionType.transfer:
         return tx.description ?? 'Wallet Transfer';
+      case TransactionType.deposit:
+        return tx.description ?? 'Wallet Deposit';
     }
   }
 
@@ -193,6 +195,8 @@ class _TransactionItem extends StatelessWidget {
         return Icons.wifi_protected_setup_outlined;
       case TransactionType.transfer:
         return Icons.outbox_outlined;
+      case TransactionType.deposit:
+        return Icons.account_balance_wallet_outlined;
     }
   }
 

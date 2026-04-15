@@ -3,7 +3,8 @@ import 'package:equatable/equatable.dart';
 enum TransactionType {
   fee('fee'),
   data('data'),
-  transfer('transfer');
+  transfer('transfer'),
+  deposit('deposit');
 
   final String value;
   const TransactionType(this.value);

@@ -26,7 +26,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   void _onSubmit() {
     if (_formKey.currentState!.validate()) {
       context.read<AuthBloc>().add(
-            ForgotPasswordEvent(email: _emailController.text.trim()),
+            ForgotPasswordEvent(_emailController.text.trim()),
           );
     }
   }

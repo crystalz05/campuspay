@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 class WalletBalanceCard extends StatefulWidget {
@@ -87,7 +88,7 @@ class _WalletBalanceCardState extends State<WalletBalanceCard> {
                 icon: Icons.add,
                 label: 'Fund Wallet',
                 onTap: () {
-                  // TODO: Implement Top Up
+                  context.push('/fund-wallet');
                 },
                 isPrimary: true,
               ),
