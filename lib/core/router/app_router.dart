@@ -26,6 +26,16 @@ import '../../features/splash/presentation/pages/splash_screen.dart';
 import '../../features/dashboard/domain/entities/transaction_entity.dart';
 import '../../features/fee_payment/presentation/bloc/fee_payment_bloc.dart';
 import '../../features/fund_wallet/presentation/bloc/fund_wallet_bloc.dart';
+import '../../features/data_bundle/presentation/bloc/data_bundle_bloc.dart';
+import '../../features/data_bundle/presentation/pages/network_select_screen.dart';
+import '../../features/data_bundle/presentation/pages/bundle_select_screen.dart';
+import '../../features/data_bundle/presentation/pages/data_confirm_screen.dart';
+import '../../features/data_bundle/presentation/pages/data_result_screen.dart';
+import '../../features/data_bundle/domain/entities/data_bundle_entity.dart';
+import '../../features/airtime/presentation/bloc/airtime_bloc.dart';
+import '../../features/airtime/presentation/pages/airtime_purchase_screen.dart';
+import '../../features/airtime/presentation/pages/airtime_result_screen.dart';
+import '../../features/dashboard/presentation/pages/pay_hub_screen.dart';
 import '../../injection_container.dart';
 
 class GoRouterRefreshStream extends ChangeNotifier {
@@ -172,6 +182,63 @@ class AppRouter {
           ],
         ),
 
+        // ── Data Bundle Flow ──────────────────────────────────────────
+        ShellRoute(
+          builder: (context, state, child) => BlocProvider<DataBundleBloc>(
+            create: (_) => sl<DataBundleBloc>(),
+            child: child,
+          ),
+          routes: [
+            GoRoute(
+              path: '/buy-data',
+              builder: (context, state) => const NetworkSelectScreen(),
+            ),
+            GoRoute(
+              path: '/buy-data/bundles',
+              builder: (context, state) {
+                final extra = state.extra as Map<String, dynamic>;
+                return BundleSelectScreen(
+                  network: extra['network'] as NetworkProvider,
+                  phoneNumber: extra['phone'] as String,
+                );
+              },
+            ),
+            GoRoute(
+              path: '/buy-data/confirm',
+              builder: (context, state) {
+                final extra = state.extra as Map<String, dynamic>;
+                return DataConfirmScreen(
+                  network: extra['network'] as NetworkProvider,
+                  phoneNumber: extra['phone'] as String,
+                  bundle: extra['bundle'] as DataBundleEntity,
+                );
+              },
+            ),
+            GoRoute(
+              path: '/buy-data/result',
+              builder: (context, state) => const DataResultScreen(),
+            ),
+          ],
+        ),
+
+        // ── Airtime Flow ──────────────────────────────────────────────
+        ShellRoute(
+          builder: (context, state, child) => BlocProvider<AirtimeBloc>(
+            create: (_) => sl<AirtimeBloc>(),
+            child: child,
+          ),
+          routes: [
+            GoRoute(
+              path: '/airtime',
+              builder: (context, state) => const AirtimePurchaseScreen(),
+            ),
+            GoRoute(
+              path: '/airtime/result',
+              builder: (context, state) => const AirtimeResultScreen(),
+            ),
+          ],
+        ),
+
         // ── Authenticated Shell (Bottom Nav) ─────────────────────────────
         StatefulShellRoute.indexedStack(
           builder: (context, state, navigationShell) =>
@@ -203,7 +270,7 @@ class AppRouter {
               routes: [
                 GoRoute(
                   path: '/pay',
-                  builder: (context, state) => const PayPlaceholderScreen(),
+                  builder: (context, state) => const PayHubScreen(),
                 ),
               ],
             ),

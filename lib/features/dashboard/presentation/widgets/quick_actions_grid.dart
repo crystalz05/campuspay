@@ -27,9 +27,7 @@ class QuickActionsGrid extends StatelessWidget {
             _QuickActionItem(
               icon: Icons.wifi_protected_setup_outlined,
               label: 'Buy Data',
-              onTap: () {
-                // TODO: Navigate to Buy Data
-              },
+              onTap: () => context.push('/buy-data'),
             ),
             _QuickActionItem(
               icon: Icons.outbox_outlined,

@@ -4,7 +4,8 @@ enum TransactionType {
   fee('fee'),
   data('data'),
   transfer('transfer'),
-  deposit('deposit');
+  deposit('deposit'),
+  airtime('airtime');
 
   final String value;
   const TransactionType(this.value);

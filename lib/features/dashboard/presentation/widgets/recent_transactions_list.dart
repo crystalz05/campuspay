@@ -113,8 +113,11 @@ class _TransactionItem extends StatelessWidget {
     final currencyFormat = NumberFormat.currency(symbol: '₦', decimalDigits: 2);
     final dateFormat = DateFormat('MMM dd, yyyy');
 
-    final bool isCredit = transaction.type == TransactionType.transfer && 
-                          transaction.description?.toLowerCase().contains('received') == true;
+    final bool isCredit = transaction.type == TransactionType.deposit ||
+        (transaction.type == TransactionType.transfer &&
+            transaction.description?.toLowerCase().contains('received') ==
+                true);
+
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 16.0),
@@ -184,6 +187,8 @@ class _TransactionItem extends StatelessWidget {
         return tx.description ?? 'Wallet Transfer';
       case TransactionType.deposit:
         return tx.description ?? 'Wallet Deposit';
+      case TransactionType.airtime:
+        return tx.description ?? 'Airtime Top-Up';
     }
   }
 
@@ -197,6 +202,8 @@ class _TransactionItem extends StatelessWidget {
         return Icons.outbox_outlined;
       case TransactionType.deposit:
         return Icons.account_balance_wallet_outlined;
+      case TransactionType.airtime:
+        return Icons.phone_android_outlined;
     }
   }
 
