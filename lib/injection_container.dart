@@ -7,6 +7,7 @@ import 'features/fee_payment/di/fee_payment_injection.dart';
 import 'features/fund_wallet/di/fund_wallet_injection.dart';
 import 'features/data_bundle/di/data_bundle_injection.dart';
 import 'features/airtime/di/airtime_injection.dart';
+import 'features/transfer/di/transfer_injection.dart';
 
 final sl = GetIt.instance;
 
@@ -21,4 +22,5 @@ Future<void> init() async {
   initFundWalletDependencies(sl);
   initDataBundleDependencies(sl);
   initAirtimeDependencies(sl);
+  initTransfer();
 }

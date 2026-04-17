@@ -61,6 +61,15 @@ class ForgotPasswordEvent extends AuthEvent {
   List<Object?> get props => [email];
 }
 
+class ResendVerificationEmailEvent extends AuthEvent {
+  final String email;
+
+  const ResendVerificationEmailEvent(this.email);
+
+  @override
+  List<Object?> get props => [email];
+}
+
 class ResetPasswordEvent extends AuthEvent {
   final String newPassword;
 

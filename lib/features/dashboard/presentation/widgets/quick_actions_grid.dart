@@ -33,7 +33,7 @@ class QuickActionsGrid extends StatelessWidget {
               icon: Icons.outbox_outlined,
               label: 'Transfer',
               onTap: () {
-                // TODO: Navigate to Transfer
+                context.push('/transfer');
               },
             ),
             _QuickActionItem(

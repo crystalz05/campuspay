@@ -31,6 +31,8 @@ abstract class AuthRemoteDataSource {
 
   Future<void> setTransactionPin({required String pin});
 
+  Future<void> resendVerificationEmail({required String email});
+
   Stream<supabase.User?> get onAuthStateChanged;
 }
 
@@ -224,6 +226,25 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       }).eq('id', user.id);
     } catch (e, stack) {
       log('Error updating transaction PIN', name: 'AuthRemoteDataSource', error: e, stackTrace: stack);
+      throw app.ServerException(e.toString());
+    }
+  }
+
+  @override
+  Future<void> resendVerificationEmail({required String email}) async {
+    try {
+      log('Requesting resend verification for email: $email', name: 'AuthRemoteDataSource');
+      await client.auth.resend(
+        type: supabase.OtpType.signup,
+        email: email.trim(),
+        emailRedirectTo: 'campuspay://login-callback',
+      );
+      log('Resend verification requested successfully', name: 'AuthRemoteDataSource');
+    } on supabase.AuthException catch (e, stack) {
+      log('Supabase AuthException during resendVerificationEmail', name: 'AuthRemoteDataSource', error: e, stackTrace: stack);
+      throw app.ServerException(e.message);
+    } catch (e, stack) {
+      log('Unexpected error during resendVerificationEmail', name: 'AuthRemoteDataSource', error: e, stackTrace: stack);
       throw app.ServerException(e.toString());
     }
   }

@@ -29,5 +29,7 @@ abstract class AuthRepository {
 
   Future<Either<Failure, void>> setTransactionPin({required String pin});
 
+  Future<Either<Failure, void>> resendVerificationEmail({required String email});
+
   Stream<UserEntity?> get onAuthStateChanged;
 }

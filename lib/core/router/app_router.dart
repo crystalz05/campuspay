@@ -36,6 +36,10 @@ import '../../features/airtime/presentation/bloc/airtime_bloc.dart';
 import '../../features/airtime/presentation/pages/airtime_purchase_screen.dart';
 import '../../features/airtime/presentation/pages/airtime_result_screen.dart';
 import '../../features/dashboard/presentation/pages/pay_hub_screen.dart';
+import '../../features/transfer/presentation/bloc/transfer_bloc.dart';
+import '../../features/transfer/presentation/pages/transfer_amount_screen.dart';
+import '../../features/transfer/presentation/pages/transfer_result_screen.dart';
+import '../../features/transfer/presentation/pages/transfer_search_screen.dart';
 import '../../injection_container.dart';
 
 class GoRouterRefreshStream extends ChangeNotifier {
@@ -114,6 +118,12 @@ class AppRouter {
         // 7. Transaction PIN Setup Guard
         if (authState is CampusAuthPinSetupRequired) {
           if (path != '/set-pin') return '/set-pin';
+          return null;
+        }
+        
+        // 8. Verification Pending Guard
+        if (authState is CampusAuthVerificationRequired) {
+          if (!isAuthRoute) return '/login';
           return null;
         }
 
@@ -235,6 +245,28 @@ class AppRouter {
             GoRoute(
               path: '/airtime/result',
               builder: (context, state) => const AirtimeResultScreen(),
+            ),
+          ],
+        ),
+
+        // ── Transfer Flow ─────────────────────────────────────────────
+        ShellRoute(
+          builder: (context, state, child) => BlocProvider<TransferBloc>(
+            create: (_) => sl<TransferBloc>(),
+            child: child,
+          ),
+          routes: [
+            GoRoute(
+              path: '/transfer',
+              builder: (context, state) => const TransferSearchScreen(),
+            ),
+            GoRoute(
+              path: '/transfer-amount',
+              builder: (context, state) => const TransferAmountScreen(),
+            ),
+            GoRoute(
+              path: '/transfer-result',
+              builder: (context, state) => const TransferResultScreen(),
             ),
           ],
         ),

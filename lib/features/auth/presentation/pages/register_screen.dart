@@ -204,6 +204,18 @@ class _RegisterScreenState extends State<RegisterScreen> {
         actions: [
           TextButton(
             onPressed: () {
+              context.read<AuthBloc>().add(ResendVerificationEmailEvent(email));
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Verification email resent!'),
+                  behavior: SnackBarBehavior.floating,
+                ),
+              );
+            },
+            child: const Text('Resend'),
+          ),
+          ElevatedButton(
+            onPressed: () {
               Navigator.of(context).pop();
               context.go('/login');
             },

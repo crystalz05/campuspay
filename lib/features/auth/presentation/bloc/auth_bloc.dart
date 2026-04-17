@@ -11,6 +11,7 @@ import '../../domain/usecases/login_usecase.dart';
 import '../../domain/usecases/logout_usecase.dart';
 import '../../domain/usecases/register_usecase.dart';
 import '../../domain/usecases/reset_password_usecase.dart';
+import '../../domain/usecases/resend_verification_usecase.dart';
 import '../../domain/usecases/set_pin_usecase.dart';
 import 'auth_event.dart';
 import 'auth_state.dart';
@@ -24,6 +25,7 @@ class AuthBloc extends Bloc<AuthEvent, CampusAuthState> {
   final ResetPasswordUseCase resetPasswordUseCase;
   final SetTransactionPinUseCase setTransactionPinUseCase;
   final CompleteProfileUseCase completeProfileUseCase;
+  final ResendVerificationUseCase resendVerificationUseCase;
 
   // Supabase auth state stream subscription — listens for deep-link auth events
   // like PASSWORD_RECOVERY so the router can redirect correctly.
@@ -38,6 +40,7 @@ class AuthBloc extends Bloc<AuthEvent, CampusAuthState> {
     required this.resetPasswordUseCase,
     required this.setTransactionPinUseCase,
     required this.completeProfileUseCase,
+    required this.resendVerificationUseCase,
   }) : super(CampusAuthInitial()) {
     on<CheckAuthStatusEvent>(_onCheckAuthStatus);
     on<RefreshUserEvent>(_onRefreshUser);
@@ -45,6 +48,7 @@ class AuthBloc extends Bloc<AuthEvent, CampusAuthState> {
     on<RegisterEvent>(_onRegister);
     on<LogoutEvent>(_onLogout);
     on<ForgotPasswordEvent>(_onForgotPassword);
+    on<ResendVerificationEmailEvent>(_onResendVerificationEmail);
     on<ResetPasswordEvent>(_onResetPassword);
     on<SetTransactionPinEvent>(_onSetTransactionPin);
     on<CompleteProfileEvent>(_onCompleteProfile);
@@ -96,8 +100,12 @@ class AuthBloc extends Bloc<AuthEvent, CampusAuthState> {
       case supabase.AuthChangeEvent.signedOut:
         emit(CampusAuthUnauthenticated());
         break;
+      case supabase.AuthChangeEvent.signedIn:
+      case supabase.AuthChangeEvent.initialSession:
+        // Deep links triggering sign-in need to be explicitly handled
+        add(CheckAuthStatusEvent());
+        break;
       default:
-        // Ignore other events (signedIn is handled via CheckAuthStatusEvent / LoginEvent)
         break;
     }
   }
@@ -205,6 +213,20 @@ class AuthBloc extends Bloc<AuthEvent, CampusAuthState> {
     result.fold(
       (failure) => emit(CampusAuthError(message: failure.message)),
       (_) => emit(CampusAuthPasswordResetSent()),
+    );
+  }
+
+  Future<void> _onResendVerificationEmail(
+    ResendVerificationEmailEvent event,
+    Emitter<CampusAuthState> emit,
+  ) async {
+    // We don't want to show a global loading screen that removes the dialog,
+    // so we just execute this silently or emit a specific state if needed.
+    // For now, we'll keep the current state and just fire the request.
+    final result = await resendVerificationUseCase(event.email);
+    result.fold(
+      (failure) => emit(CampusAuthError(message: failure.message)),
+      (_) => emit(CampusAuthVerificationRequired(email: event.email)),
     );
   }
 
