@@ -53,6 +53,7 @@ class _TransferSearchScreenState extends State<TransferSearchScreen> {
         return Scaffold(
           appBar: AppBar(
             title: const Text('Transfer Funds'),
+            leading: BackButton(onPressed: () => context.pop()),
           ),
           body: Padding(
             padding: const EdgeInsets.all(24.0),

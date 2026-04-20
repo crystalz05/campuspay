@@ -174,6 +174,12 @@ class AuthRepositoryImpl implements AuthRepository {
     if (message.contains('network-request-failed')) {
       return 'Connection error. Please check your internet.';
     }
+    if (message.toLowerCase().contains('email not confirmed') || message.toLowerCase().contains('email not verified')) {
+      return 'email-not-verified';
+    }
+    if (message.contains('users_matric_number_key') || message.toLowerCase().contains('unique constraint')) {
+      return 'An account with this matric number already exists.';
+    }
     return message;
   }
 }

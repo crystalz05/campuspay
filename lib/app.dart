@@ -5,6 +5,8 @@ import 'injection_container.dart' as di;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'core/theme/app_theme.dart';
 import 'core/router/app_router.dart';
+import 'features/notifications/presentation/bloc/notifications_bloc.dart';
+import 'features/notifications/presentation/bloc/notifications_event.dart';
 
 class CampusPayApp extends StatelessWidget {
   const CampusPayApp({super.key});
@@ -14,7 +16,8 @@ class CampusPayApp extends StatelessWidget {
 
     return MultiBlocProvider(
         providers: [
-          BlocProvider<AuthBloc>(create: (_) => di.sl<AuthBloc>()..add(CheckAuthStatusEvent()))
+          BlocProvider<AuthBloc>(create: (_) => di.sl<AuthBloc>()..add(CheckAuthStatusEvent())),
+          BlocProvider<NotificationsBloc>(create: (_) => di.sl<NotificationsBloc>()),
         ],
         child: Builder(
           builder: (context) {

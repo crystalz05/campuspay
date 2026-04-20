@@ -11,6 +11,8 @@ import '../widgets/dashboard_header.dart';
 import '../widgets/quick_actions_grid.dart';
 import '../widgets/recent_transactions_list.dart';
 import '../widgets/wallet_balance_card.dart';
+import '../../../notifications/presentation/bloc/notifications_bloc.dart';
+import '../../../notifications/presentation/bloc/notifications_event.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -30,6 +32,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     if (authState is! CampusAuthAuthenticated) {
       context.read<AuthBloc>().add(CheckAuthStatusEvent());
     }
+    context.read<NotificationsBloc>().add(FetchNotificationsEvent());
   }
 
   @override
@@ -47,6 +50,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   onRefresh: () async {
                     context.read<DashboardBloc>().add(FetchDashboardDataEvent());
                     context.read<AuthBloc>().add(CheckAuthStatusEvent());
+                    context.read<NotificationsBloc>().add(FetchNotificationsEvent());
                   },
                   child: SingleChildScrollView(
                     physics: const AlwaysScrollableScrollPhysics(),

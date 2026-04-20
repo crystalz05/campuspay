@@ -40,6 +40,9 @@ import '../../features/transfer/presentation/bloc/transfer_bloc.dart';
 import '../../features/transfer/presentation/pages/transfer_amount_screen.dart';
 import '../../features/transfer/presentation/pages/transfer_result_screen.dart';
 import '../../features/transfer/presentation/pages/transfer_search_screen.dart';
+import '../../features/notifications/presentation/pages/notifications_screen.dart';
+import '../../features/notifications/presentation/bloc/notifications_bloc.dart';
+import '../../features/notifications/presentation/bloc/notifications_event.dart';
 import '../../injection_container.dart';
 
 class GoRouterRefreshStream extends ChangeNotifier {
@@ -137,6 +140,7 @@ class AppRouter {
         GoRoute(path: '/reset-password', builder: (context, state) => const ResetPasswordScreen()),
         GoRoute(path: '/complete-profile', builder: (context, state) => const CompleteProfileScreen()),
         GoRoute(path: '/set-pin', builder: (context, state) => const SetPinScreen()),
+        GoRoute(path: '/notifications', builder: (context, state) => const NotificationsScreen()),
 
         // ── Fee Payment Flow ─────────────────────────────────────────
         ShellRoute(
@@ -273,7 +277,7 @@ class AppRouter {
 
         // ── Authenticated Shell (Bottom Nav) ─────────────────────────────
         StatefulShellRoute.indexedStack(
-          builder: (context, state, navigationShell) =>
+          builder: (context, state, navigationShell) => 
               MainNavigationWrapper(navigationShell: navigationShell),
           branches: [
             // Index 0 — Home

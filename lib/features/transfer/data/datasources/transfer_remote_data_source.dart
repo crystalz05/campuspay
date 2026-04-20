@@ -29,18 +29,35 @@ class TransferRemoteDataSourceImpl implements TransferRemoteDataSource {
         throw const AppAuthException('User not authenticated');
       }
 
+      final trimmedQuery = query.trim().toLowerCase();
+
       final response = await client
           .from('users')
           .select()
-          .or('email.eq.$query,matric_number.eq.$query')
-          .neq('id', currentUser.id) // Exclude self
+          .or('email.ilike.$trimmedQuery,matric_number.ilike.$trimmedQuery')
+          .neq('id', currentUser.id)
           .maybeSingle();
 
+      log('searchRecipient query response: $response', name: 'TransferRemoteDataSource');
+
+      // DEBUG: fetch all emails visible to this user to diagnose RLS / query issues
+      try {
+        final allUsers = await client.from('users').select('email, matric_number');
+        final emails = (allUsers as List).map((u) => '${u['email']} | ${u['matric_number']}').toList();
+        log('[DEBUG] All visible users (${emails.length}): ${emails.join(', ')}', name: 'TransferRemoteDataSource');
+      } catch (debugErr) {
+        log('[DEBUG] Could not fetch all users: $debugErr', name: 'TransferRemoteDataSource');
+      }
+
       if (response == null) {
-        throw const ServerException('Recipient not found');
+        throw const ServerException('No user found with that email or matric number.');
       }
 
       return UserModel.fromJson(response);
+    } on supabase.PostgrestException catch (e, stack) {
+      log('PostgrestException in searchRecipient: ${e.message} | code: ${e.code} | details: ${e.details}',
+          name: 'TransferRemoteDataSource', error: e, stackTrace: stack);
+      throw ServerException('Search failed: ${e.message}');
     } catch (e, stack) {
       log('Error during searchRecipient', name: 'TransferRemoteDataSource', error: e, stackTrace: stack);
       if (e is ServerException || e is AppAuthException) rethrow;
@@ -83,16 +100,24 @@ class TransferRemoteDataSourceImpl implements TransferRemoteDataSource {
         'p_note': note,
       });
 
-      return response as String;
+      if (response == null) {
+        throw const ServerException('Transfer returned no transaction ID');
+      }
+
+      return response.toString();
     } catch (e, stack) {
       log('Error during processTransfer', name: 'TransferRemoteDataSource', error: e, stackTrace: stack);
       if (e is ServerException || e is AppAuthException) rethrow;
-      
-      // Supabase RPC throws PostgrestException if raise exception occurs
+
+      // Supabase RPC throws PostgrestException on raise exception
       if (e is supabase.PostgrestException) {
+        final msg = e.message.toLowerCase();
+        if (msg.contains('insufficient balance')) {
+          throw const ServerException('Insufficient wallet balance to complete this transfer.');
+        }
         throw ServerException(e.message);
       }
-      
+
       throw ServerException('Transfer failed: ${e.toString()}');
     }
   }

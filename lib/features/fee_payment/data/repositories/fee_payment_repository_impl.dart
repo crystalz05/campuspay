@@ -36,69 +36,41 @@ class FeePaymentRepositoryImpl implements FeePaymentRepository {
     if (user == null) return const Left(AuthFailure('User not authenticated'));
 
     try {
-      // Step 1: Check wallet balance
-      final userRow = await supabaseClient
-          .from('users')
-          .select('wallet_balance')
-          .eq('id', user.id)
-          .single();
-
-      final currentBalance = (userRow['wallet_balance'] as num).toDouble();
-      if (currentBalance < details.amount) {
-        return Left(ServerFailure(
-          'Insufficient wallet balance. You need ₦${details.amount.toStringAsFixed(2)} but have ₦${currentBalance.toStringAsFixed(2)}.',
-        ));
-      }
-
-      // Step 2: Call mock Remita payment processing
+      // Simulate Remita processing
       final remitaResponse = await remitaService.processPayment(details);
 
-      // Step 3: Insert into transactions (status: success)
-      final txRow = await supabaseClient
-          .from('transactions')
-          .insert({
-            'user_id': user.id,
-            'type': 'fee',
-            'amount': details.amount,
-            'status': 'success',
-            'reference': details.rrrNumber,
-            'description': '${details.feePurpose} — ${details.institutionName}',
-          })
-          .select()
-          .single();
-
-      final transactionId = txRow['id'] as String;
-
-      // Step 4: Insert fee_payments detail row
-      await supabaseClient.from('fee_payments').insert({
-        'transaction_id': transactionId,
-        'rrr_number': details.rrrNumber,
-        'institution_name': details.institutionName,
-        'fee_purpose': details.feePurpose,
-        'remita_response': remitaResponse,
+      final txId = await supabaseClient.rpc('process_fee_payment', params: {
+        'p_user_id': user.id,
+        'p_rrr_number': details.rrrNumber,
+        'p_institution': details.institutionName,
+        'p_fee_purpose': details.feePurpose,
+        'p_amount': details.amount,
+        'p_remita_response': remitaResponse,
       });
 
-      // Step 5: Deduct from wallet
-      await supabaseClient
-          .from('users')
-          .update({'wallet_balance': currentBalance - details.amount}).eq('id', user.id);
+      if (txId == null) throw Exception('No transaction ID returned');
 
-      log('Fee payment saved. Transaction ID: $transactionId', name: 'FeePaymentRepository');
+      log('Fee payment processed via RPC. TX: $txId', name: 'FeePaymentRepository');
 
       return Right(TransactionEntity(
-        id: txRow['id'] as String,
-        userId: txRow['user_id'] as String,
+        id: txId.toString(),
+        userId: user.id,
         type: TransactionType.fee,
-        amount: (txRow['amount'] as num).toDouble(),
+        amount: details.amount,
         status: TransactionStatus.success,
-        reference: txRow['reference'] as String?,
-        description: txRow['description'] as String?,
-        createdAt: DateTime.parse(txRow['created_at'] as String),
+        reference: details.rrrNumber,
+        description: '${details.feePurpose} — ${details.institutionName}',
+        createdAt: DateTime.now(),
       ));
+    } on PostgrestException catch (e, stack) {
+      log('PostgrestException submitting fee payment', name: 'FeePaymentRepository', error: e, stackTrace: stack);
+      final msg = e.message.toLowerCase();
+      if (msg.contains('insufficient balance')) {
+        return Left(ServerFailure('Insufficient wallet balance to complete this payment.'));
+      }
+      return Left(ServerFailure(e.message));
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
-    } on AuthFailure catch (e) {
-      return Left(e);
     } catch (e, stack) {
       log('Error submitting fee payment', name: 'FeePaymentRepository', error: e, stackTrace: stack);
       return Left(ServerFailure(e.toString()));

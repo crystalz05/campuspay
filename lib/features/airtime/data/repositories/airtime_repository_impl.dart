@@ -21,82 +21,33 @@ class AirtimeRepositoryImpl implements AirtimeRepository {
     if (user == null) return const Left(AuthFailure('User not authenticated'));
 
     try {
-      // Step 1: Check wallet balance
-      final userRow = await supabaseClient
-          .from('users')
-          .select('wallet_balance')
-          .eq('id', user.id)
-          .single();
-
-      final currentBalance = (userRow['wallet_balance'] as num).toDouble();
-      if (currentBalance < amount) {
-        return Left(ServerFailure(
-          'Insufficient balance. You need ₦${amount.toStringAsFixed(2)} but have ₦${currentBalance.toStringAsFixed(2)}.',
-        ));
-      }
-
-      // Step 2: Simulate API delay (90% success rate)
-      await Future.delayed(const Duration(milliseconds: 1500));
-      final isSuccess = DateTime.now().millisecondsSinceEpoch % 10 != 0;
-      if (!isSuccess) {
-        throw Exception('Network error. Airtime vending failed. Please retry.');
-      }
-
-      final mockResponse = {
-        'status': 'success',
-        'provider': network.dbValue,
-        'phone': phoneNumber,
-        'amount': amount,
-        'reference': 'ATM${DateTime.now().millisecondsSinceEpoch}',
-        'timestamp': DateTime.now().toIso8601String(),
-      };
-
-      // Step 3: Insert transaction
-      final txRow = await supabaseClient
-          .from('transactions')
-          .insert({
-            'user_id': user.id,
-            'type': 'airtime',
-            'amount': amount,
-            'status': 'success',
-            'reference': mockResponse['reference'],
-            'description':
-                '₦${amount.toStringAsFixed(0)} Airtime — ${network.displayName} → $phoneNumber',
-          })
-          .select()
-          .single();
-
-      final transactionId = txRow['id'] as String;
-
-      // Step 4: Insert into airtime_purchases
-      await supabaseClient.from('airtime_purchases').insert({
-        'transaction_id': transactionId,
-        'network': network.dbValue,
-        'phone_number': phoneNumber,
-        'amount': amount,
-        'mock_response': mockResponse,
+      final txId = await supabaseClient.rpc('process_airtime_purchase', params: {
+        'p_user_id': user.id,
+        'p_network': network.dbValue,
+        'p_phone': phoneNumber,
+        'p_amount': amount,
       });
 
-      // Step 5: Deduct from wallet
-      await supabaseClient
-          .from('users')
-          .update({'wallet_balance': currentBalance - amount})
-          .eq('id', user.id);
+      if (txId == null) throw Exception('No transaction ID returned');
 
-      log('Airtime purchased. TX: $transactionId', name: 'AirtimeRepo');
+      log('Airtime purchased via RPC. TX: $txId', name: 'AirtimeRepo');
 
       return Right(TransactionEntity(
-        id: txRow['id'] as String,
-        userId: txRow['user_id'] as String,
+        id: txId.toString(),
+        userId: user.id,
         type: TransactionType.airtime,
-        amount: (txRow['amount'] as num).toDouble(),
+        amount: amount,
         status: TransactionStatus.success,
-        reference: txRow['reference'] as String?,
-        description: txRow['description'] as String?,
-        createdAt: DateTime.parse(txRow['created_at'] as String),
+        description: '₦${amount.toStringAsFixed(0)} Airtime — ${network.displayName} → $phoneNumber',
+        createdAt: DateTime.now(),
       ));
-    } on AuthFailure catch (e) {
-      return Left(e);
+    } on PostgrestException catch (e, stack) {
+      log('PostgrestException purchasing airtime', name: 'AirtimeRepo', error: e, stackTrace: stack);
+      final msg = e.message.toLowerCase();
+      if (msg.contains('insufficient balance')) {
+        return Left(ServerFailure('Insufficient wallet balance to complete this purchase.'));
+      }
+      return Left(ServerFailure(e.message));
     } catch (e, stack) {
       log('Error purchasing airtime', name: 'AirtimeRepo', error: e, stackTrace: stack);
       return Left(ServerFailure(e.toString()));

@@ -159,7 +159,14 @@ class AuthBloc extends Bloc<AuthEvent, CampusAuthState> {
       password: event.password,
     ));
     result.fold(
-      (failure) => emit(CampusAuthError(message: failure.message)),
+      (failure) {
+        if (failure.message == 'email-not-verified') {
+          // Automatically trigger resend and drop them into the verification required state
+          add(ResendVerificationEmailEvent(event.email));
+        } else {
+          emit(CampusAuthError(message: failure.message));
+        }
+      },
       (user) => emit(_determineNextState(user)),
     );
   }

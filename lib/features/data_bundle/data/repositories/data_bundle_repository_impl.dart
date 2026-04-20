@@ -17,8 +17,7 @@ class DataBundleRepositoryImpl implements DataBundleRepository {
   });
 
   @override
-  Future<Either<Failure, List<DataBundleEntity>>> getBundles(
-      NetworkProvider network) async {
+  Future<Either<Failure, List<DataBundleEntity>>> getBundles(NetworkProvider network) async {
     try {
       final bundles = mockService.getBundles(network);
       return Right(bundles);
@@ -37,74 +36,35 @@ class DataBundleRepositoryImpl implements DataBundleRepository {
     if (user == null) return const Left(AuthFailure('User not authenticated'));
 
     try {
-      // Step 1: Check wallet balance
-      final userRow = await supabaseClient
-          .from('users')
-          .select('wallet_balance')
-          .eq('id', user.id)
-          .single();
-
-      final currentBalance = (userRow['wallet_balance'] as num).toDouble();
-      if (currentBalance < bundle.price) {
-        return Left(ServerFailure(
-          'Insufficient wallet balance. You need ₦${bundle.price.toStringAsFixed(2)} but have ₦${currentBalance.toStringAsFixed(2)}.',
-        ));
-      }
-
-      // Step 2: Call mock provider API (may throw on 10% failure)
-      final mockResponse = await mockService.processPurchase(
-        network: network,
-        phoneNumber: phoneNumber,
-        bundle: bundle,
-      );
-
-      // Step 3: Insert into transactions
-      final txRow = await supabaseClient
-          .from('transactions')
-          .insert({
-            'user_id': user.id,
-            'type': 'data',
-            'amount': bundle.price,
-            'status': 'success',
-            'reference': mockResponse['reference'] as String?,
-            'description':
-                '${bundle.name} — ${network.displayName} → $phoneNumber',
-          })
-          .select()
-          .single();
-
-      final transactionId = txRow['id'] as String;
-
-      // Step 4: Insert into data_purchases
-      await supabaseClient.from('data_purchases').insert({
-        'transaction_id': transactionId,
-        'network': network.dbValue,
-        'phone_number': phoneNumber,
-        'bundle_name': bundle.name,
-        'bundle_gb': bundle.sizeGb,
-        'mock_response': mockResponse,
+      final txId = await supabaseClient.rpc('process_data_purchase', params: {
+        'p_user_id': user.id,
+        'p_network': network.dbValue,
+        'p_phone': phoneNumber,
+        'p_bundle_name': bundle.name,
+        'p_bundle_gb': bundle.sizeGb,
+        'p_amount': bundle.price,
       });
 
-      // Step 5: Deduct from wallet
-      await supabaseClient
-          .from('users')
-          .update({'wallet_balance': currentBalance - bundle.price})
-          .eq('id', user.id);
+      if (txId == null) throw Exception('No transaction ID returned');
 
-      log('Data purchase saved. TX: $transactionId', name: 'DataBundleRepo');
+      log('Data bundle purchased via RPC. TX: $txId', name: 'DataBundleRepo');
 
       return Right(TransactionEntity(
-        id: txRow['id'] as String,
-        userId: txRow['user_id'] as String,
+        id: txId.toString(),
+        userId: user.id,
         type: TransactionType.data,
-        amount: (txRow['amount'] as num).toDouble(),
+        amount: bundle.price,
         status: TransactionStatus.success,
-        reference: txRow['reference'] as String?,
-        description: txRow['description'] as String?,
-        createdAt: DateTime.parse(txRow['created_at'] as String),
+        description: '${bundle.name} — ${network.displayName} → $phoneNumber',
+        createdAt: DateTime.now(),
       ));
-    } on AuthFailure catch (e) {
-      return Left(e);
+    } on PostgrestException catch (e, stack) {
+      log('PostgrestException purchasing bundle', name: 'DataBundleRepo', error: e, stackTrace: stack);
+      final msg = e.message.toLowerCase();
+      if (msg.contains('insufficient balance')) {
+        return Left(ServerFailure('Insufficient wallet balance to complete this purchase.'));
+      }
+      return Left(ServerFailure(e.message));
     } catch (e, stack) {
       log('Error purchasing bundle', name: 'DataBundleRepo', error: e, stackTrace: stack);
       return Left(ServerFailure(e.toString()));

@@ -80,6 +80,8 @@ class _LoginViewState extends State<_LoginView> {
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                   ),
                 );
+              } else if (state is CampusAuthVerificationRequired) {
+                _showSuccessDialog(state.email);
               } else {
                 _handleNavigation(context, state);
               }
@@ -197,6 +199,28 @@ class _LoginViewState extends State<_LoginView> {
             },
           ),
         ),
+      ),
+    );
+  }
+
+  void _showSuccessDialog(String email) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        title: const Text('Verification Pending'),
+        content: Text(
+          'Your email ($email) is not verified. A new verification link has been sent to your inbox. Please check your inbox to activate your account.',
+          style: Theme.of(context).textTheme.bodyMedium,
+        ),
+        actions: [
+          ElevatedButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            child: const Text('OK'),
+          ),
+        ],
       ),
     );
   }

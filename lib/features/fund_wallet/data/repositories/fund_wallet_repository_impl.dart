@@ -16,53 +16,33 @@ class FundWalletRepositoryImpl implements FundWalletRepository {
     required String paymentMethod,
   }) async {
     final user = supabaseClient.auth.currentUser;
-    if (user == null) {
-      return const Left(AuthFailure('User not authenticated'));
-    }
+    if (user == null) return const Left(AuthFailure('User not authenticated'));
 
     try {
       // Simulate payment processor delay
       await Future.delayed(const Duration(seconds: 2));
 
-      // 1. Fetch current wallet balance
-      final userRow = await supabaseClient
-          .from('users')
-          .select('wallet_balance')
-          .eq('id', user.id)
-          .single();
-      
-      final currentBalance = (userRow['wallet_balance'] as num).toDouble();
+      final txId = await supabaseClient.rpc('fund_wallet', params: {
+        'p_user_id': user.id,
+        'p_amount': amount,
+      });
 
-      // 2. Insert transaction record
-      final txRow = await supabaseClient
-          .from('transactions')
-          .insert({
-            'user_id': user.id,
-            'type': 'deposit',
-            'amount': amount,
-            'status': 'success',
-            'description': 'Wallet Top-up ($paymentMethod)',
-          })
-          .select()
-          .single();
+      if (txId == null) throw Exception('No transaction ID returned');
 
-      // 3. Update user's wallet
-      await supabaseClient
-          .from('users')
-          .update({'wallet_balance': currentBalance + amount}).eq('id', user.id);
-
-      log('Wallet funded successfully! Added ₦$amount', name: 'FundWalletRepo');
+      log('Wallet funded via RPC. TX: $txId', name: 'FundWalletRepo');
 
       return Right(TransactionEntity(
-        id: txRow['id'] as String,
-        userId: txRow['user_id'] as String,
+        id: txId.toString(),
+        userId: user.id,
         type: TransactionType.deposit,
-        amount: (txRow['amount'] as num).toDouble(),
+        amount: amount,
         status: TransactionStatus.success,
-        reference: txRow['reference'] as String?,
-        description: txRow['description'] as String?,
-        createdAt: DateTime.parse(txRow['created_at'] as String),
+        description: 'Wallet Top-up ($paymentMethod)',
+        createdAt: DateTime.now(),
       ));
+    } on PostgrestException catch (e, stack) {
+      log('PostgrestException funding wallet', name: 'FundWalletRepo', error: e, stackTrace: stack);
+      return Left(ServerFailure(e.message));
     } catch (e, stack) {
       log('Error funding wallet', name: 'FundWalletRepo', error: e, stackTrace: stack);
       return Left(ServerFailure(e.toString()));

@@ -59,6 +59,12 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         throw const app.AppAuthException('Registration failed: User not created');
       }
 
+      // Supabase anti-enumeration protection handling:
+      // If the email is already mapped to an existing user, Supabase returns a fake success but with an empty identities list.
+      if (user.identities != null && user.identities!.isEmpty) {
+        throw const app.AppAuthException('already registered');
+      }
+
       // Try to fetch the public user record (synced by Supabase trigger)
       try {
         final publicUserResponse = await client

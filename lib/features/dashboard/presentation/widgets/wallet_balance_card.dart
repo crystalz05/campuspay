@@ -98,7 +98,7 @@ class _WalletBalanceCardState extends State<WalletBalanceCard> {
                 icon: Icons.arrow_outward_rounded,
                 label: 'Transfer',
                 onTap: () {
-                  // TODO: View Wallet Details
+                  context.push('/transfer');
                 },
                 isPrimary: false,
               ),

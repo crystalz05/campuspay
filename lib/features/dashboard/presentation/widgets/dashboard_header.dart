@@ -1,4 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
+
+import '../../../notifications/presentation/bloc/notifications_bloc.dart';
+import '../../../notifications/presentation/bloc/notifications_state.dart';
 
 class DashboardHeader extends StatelessWidget {
   final String fullName;
@@ -36,11 +41,24 @@ class DashboardHeader extends StatelessWidget {
             borderRadius: BorderRadius.circular(12),
             border: Border.all(color: cs.outline.withValues(alpha: 0.1)),
           ),
-          child: IconButton(
-            onPressed: () {
-              // TODO: Implement notifications
+          child: BlocBuilder<NotificationsBloc, NotificationsState>(
+            builder: (context, state) {
+              int unreadCount = 0;
+              if (state is NotificationsLoaded) {
+                unreadCount = state.unreadCount;
+              }
+
+              return Badge(
+                isLabelVisible: unreadCount > 0,
+                label: Text(unreadCount.toString()),
+                child: IconButton(
+                  onPressed: () {
+                    context.push('/notifications');
+                  },
+                  icon: Icon(Icons.notifications_none_rounded, color: cs.primary),
+                ),
+              );
             },
-            icon: Icon(Icons.notifications_none_rounded, color: cs.primary),
           ),
         ),
       ],
