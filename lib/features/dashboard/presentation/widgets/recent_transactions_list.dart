@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import '../../../history/presentation/widgets/transaction_list_item.dart';
 import '../../domain/entities/transaction_entity.dart';
 import '../bloc/dashboard_bloc.dart';
 import '../bloc/dashboard_state.dart';
+import 'main_nav_wrapper.dart';
 
 class RecentTransactionsList extends StatelessWidget {
   const RecentTransactionsList({super.key});
@@ -24,7 +27,9 @@ class RecentTransactionsList extends StatelessWidget {
             ),
             TextButton(
               onPressed: () {
-                // TODO: Navigate to History tab
+                // Navigate to History branch (Index 1)
+                final shell = (context.findAncestorWidgetOfExactType<MainNavigationWrapper>())?.navigationShell;
+                shell?.goBranch(1);
               },
               child: const Text('See All'),
             ),
@@ -55,7 +60,12 @@ class RecentTransactionsList extends StatelessWidget {
                 ),
                 itemBuilder: (context, index) {
                   final tx = state.transactions[index];
-                  return _TransactionItem(transaction: tx);
+                  return TransactionListItem(
+                    transaction: tx,
+                    onTap: () {
+                      context.push('/history/detail', extra: tx);
+                    },
+                  );
                 },
               );
             } else if (state is DashboardError) {
@@ -101,157 +111,3 @@ class RecentTransactionsList extends StatelessWidget {
   }
 }
 
-class _TransactionItem extends StatelessWidget {
-  final TransactionEntity transaction;
-
-  const _TransactionItem({required this.transaction});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final cs = theme.colorScheme;
-    final currencyFormat = NumberFormat.currency(symbol: '₦', decimalDigits: 2);
-    final dateFormat = DateFormat('MMM dd, yyyy');
-
-    final bool isCredit = transaction.type == TransactionType.deposit ||
-        (transaction.type == TransactionType.transfer &&
-            transaction.description?.toLowerCase().contains('received') ==
-                true);
-
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 16.0),
-      child: Row(
-        children: [
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              border: Border.all(color: theme.dividerColor, width: 0.5),
-              shape: BoxShape.circle,
-              color: cs.surface,
-            ),
-            child: Icon(
-              _getTypeIcon(transaction.type),
-              color: _getTypeColor(transaction.type, cs),
-              size: 20,
-            ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  _getTitle(transaction),
-                  style: theme.textTheme.bodyLarge?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  dateFormat.format(transaction.createdAt),
-                  style: theme.textTheme.bodySmall,
-                ),
-              ],
-            ),
-          ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(
-                '${isCredit ? '+' : ''}${currencyFormat.format(transaction.amount)}',
-                style: theme.textTheme.bodyLarge?.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: isCredit ? Colors.green.shade700 : null,
-                ),
-              ),
-              const SizedBox(height: 6),
-              _StatusBadge(status: transaction.status),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  String _getTitle(TransactionEntity tx) {
-    switch (tx.type) {
-      case TransactionType.fee:
-        return 'School Fee Checkout';
-      case TransactionType.data:
-        return 'Data Top-Up';
-      case TransactionType.transfer:
-        return tx.description ?? 'Wallet Transfer';
-      case TransactionType.deposit:
-        return tx.description ?? 'Wallet Deposit';
-      case TransactionType.airtime:
-        return tx.description ?? 'Airtime Top-Up';
-    }
-  }
-
-  IconData _getTypeIcon(TransactionType type) {
-    switch (type) {
-      case TransactionType.fee:
-        return Icons.school_outlined;
-      case TransactionType.data:
-        return Icons.wifi_protected_setup_outlined;
-      case TransactionType.transfer:
-        return Icons.outbox_outlined;
-      case TransactionType.deposit:
-        return Icons.account_balance_wallet_outlined;
-      case TransactionType.airtime:
-        return Icons.phone_android_outlined;
-    }
-  }
-
-  Color _getTypeColor(TransactionType type, ColorScheme cs) {
-    return cs.primary; // Elegant minimal single color for icons
-  }
-}
-
-class _StatusBadge extends StatelessWidget {
-  final TransactionStatus status;
-
-  const _StatusBadge({required this.status});
-
-  @override
-  Widget build(BuildContext context) {
-    Color color;
-    String label;
-
-    switch (status) {
-      case TransactionStatus.success:
-        color = Colors.green.shade700;
-        label = 'SUCCESS';
-        break;
-      case TransactionStatus.failed:
-        color = Theme.of(context).colorScheme.error;
-        label = 'FAILED';
-        break;
-      case TransactionStatus.pending:
-        color = Theme.of(context).colorScheme.secondary;
-        label = 'PENDING';
-        break;
-    }
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-      decoration: BoxDecoration(
-        border: Border.all(color: color.withValues(alpha: 0.5)),
-        borderRadius: BorderRadius.circular(4),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          color: color,
-          fontSize: 9,
-          fontWeight: FontWeight.w700,
-          letterSpacing: 0.5,
-        ),
-      ),
-    );
-  }
-}

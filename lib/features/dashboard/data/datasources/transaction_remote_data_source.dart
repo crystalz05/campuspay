@@ -1,10 +1,12 @@
 import 'dart:developer';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../domain/entities/transaction_entity.dart';
 import '../models/transaction_model.dart';
 import '../../../../core/error/exception.dart';
 
 abstract class TransactionRemoteDataSource {
   Future<List<TransactionModel>> getRecentTransactions();
+  Future<List<TransactionModel>> getTransactions({TransactionType? type});
 }
 
 class TransactionRemoteDataSourceImpl implements TransactionRemoteDataSource {
@@ -27,6 +29,37 @@ class TransactionRemoteDataSourceImpl implements TransactionRemoteDataSource {
           .eq('user_id', user.id)
           .order('created_at', ascending: false)
           .limit(5);
+
+      final List<dynamic> data = response as List<dynamic>;
+      return data.map((json) => TransactionModel.fromJson(json as Map<String, dynamic>)).toList();
+    } on PostgrestException catch (e, stack) {
+      log('Supabase PostgrestException fetching transactions', name: 'TransactionRemoteDataSource', error: e, stackTrace: stack);
+      throw ServerException(e.message);
+    } catch (e, stack) {
+      log('Unexpected error fetching transactions', name: 'TransactionRemoteDataSource', error: e, stackTrace: stack);
+      throw ServerException(e.toString());
+    }
+  }
+
+  @override
+  Future<List<TransactionModel>> getTransactions({TransactionType? type}) async {
+    final user = client.auth.currentUser;
+    if (user == null) {
+      log('getTransactions called but user is null', name: 'TransactionRemoteDataSource');
+      throw const AppAuthException('User not authenticated');
+    }
+
+    try {
+      var query = client
+          .from('transactions')
+          .select()
+          .eq('user_id', user.id);
+
+      if (type != null) {
+        query = query.eq('type', type.value);
+      }
+
+      final response = await query.order('created_at', ascending: false);
 
       final List<dynamic> data = response as List<dynamic>;
       return data.map((json) => TransactionModel.fromJson(json as Map<String, dynamic>)).toList();

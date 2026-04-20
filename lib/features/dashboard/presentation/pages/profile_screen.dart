@@ -4,9 +4,10 @@ import 'package:go_router/go_router.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../auth/presentation/bloc/auth_event.dart';
 import '../../../auth/presentation/bloc/auth_state.dart';
+import '../../../auth/domain/entities/user_entity.dart';
 
-class SettingsScreen extends StatelessWidget {
-  const SettingsScreen({super.key});
+class ProfileScreen extends StatelessWidget {
+  const ProfileScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -31,6 +32,12 @@ class SettingsScreen extends StatelessWidget {
                   onTap: () {
                     // TODO: Navigate to profile edit
                   },
+                ),
+                _SettingsTile(
+                  icon: Icons.settings_outlined,
+                  label: 'App Settings',
+                  subtitle: 'Theme, Notifications, Security',
+                  onTap: () => context.push('/settings'),
                 ),
                 _SettingsTile(
                   icon: Icons.lock_outline_rounded,
@@ -113,7 +120,7 @@ class SettingsScreen extends StatelessWidget {
 // ── Widgets ──────────────────────────────────────────────────────────────────
 
 class _ProfileCard extends StatelessWidget {
-  final dynamic user;
+  final UserEntity user;
   const _ProfileCard({required this.user});
 
   @override
@@ -157,7 +164,7 @@ class _ProfileCard extends StatelessWidget {
                 if (user.matricNumber != null) ...[
                   const SizedBox(height: 2),
                   Text(
-                    user.matricNumber,
+                    user.matricNumber!,
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: cs.primary,
                       fontWeight: FontWeight.w600,

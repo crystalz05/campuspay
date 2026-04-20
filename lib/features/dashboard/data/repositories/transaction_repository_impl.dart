@@ -24,4 +24,18 @@ class TransactionRepositoryImpl implements TransactionRepository {
       return Left(ServerFailure(e.toString()));
     }
   }
+
+  @override
+  Future<Either<Failure, List<TransactionEntity>>> getTransactions({TransactionType? type}) async {
+    try {
+      final transactions = await remoteDataSource.getTransactions(type: type);
+      return Right(transactions);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    } on AppAuthException catch (e) {
+      return Left(AuthFailure(e.message));
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
 }

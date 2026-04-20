@@ -12,8 +12,8 @@ import '../../features/auth/presentation/pages/register_screen.dart';
 import '../../features/auth/presentation/pages/reset_password_screen.dart';
 import '../../features/auth/presentation/pages/set_pin_screen.dart';
 import '../../features/dashboard/presentation/pages/dashboard_screen.dart';
-import '../../features/dashboard/presentation/pages/placeholders.dart';
-import '../../features/dashboard/presentation/pages/settings_screen.dart';
+import '../../features/dashboard/presentation/pages/profile_screen.dart';
+import '../../features/settings/presentation/pages/settings_screen.dart';
 import '../../features/dashboard/presentation/widgets/main_nav_wrapper.dart';
 import '../../features/fee_payment/domain/entities/fee_payment_entity.dart';
 import '../../features/fee_payment/presentation/pages/fee_confirm_screen.dart';
@@ -43,6 +43,10 @@ import '../../features/transfer/presentation/pages/transfer_search_screen.dart';
 import '../../features/notifications/presentation/pages/notifications_screen.dart';
 import '../../features/notifications/presentation/bloc/notifications_bloc.dart';
 import '../../features/notifications/presentation/bloc/notifications_event.dart';
+import '../../features/history/presentation/pages/history_screen.dart';
+import '../../features/history/presentation/pages/transaction_detail_screen.dart';
+import '../../features/history/presentation/bloc/history_bloc.dart';
+import '../../features/history/presentation/bloc/history_event.dart';
 import '../../injection_container.dart';
 
 class GoRouterRefreshStream extends ChangeNotifier {
@@ -141,6 +145,14 @@ class AppRouter {
         GoRoute(path: '/complete-profile', builder: (context, state) => const CompleteProfileScreen()),
         GoRoute(path: '/set-pin', builder: (context, state) => const SetPinScreen()),
         GoRoute(path: '/notifications', builder: (context, state) => const NotificationsScreen()),
+        GoRoute(path: '/settings', builder: (context, state) => const SettingsScreen()),
+        GoRoute(
+          path: '/history/detail',
+          builder: (context, state) {
+            final tx = state.extra as TransactionEntity;
+            return TransactionDetailScreen(transaction: tx);
+          },
+        ),
 
         // ── Fee Payment Flow ─────────────────────────────────────────
         ShellRoute(
@@ -296,7 +308,10 @@ class AppRouter {
               routes: [
                 GoRoute(
                   path: '/history',
-                  builder: (context, state) => const HistoryScreen(),
+                  builder: (context, state) => BlocProvider(
+                    create: (context) => sl<HistoryBloc>(),
+                    child: const HistoryScreen(),
+                  ),
                 ),
               ],
             ),
@@ -316,7 +331,7 @@ class AppRouter {
               routes: [
                 GoRoute(
                   path: '/profile',
-                  builder: (context, state) => const SettingsScreen(),
+                  builder: (context, state) => const ProfileScreen(),
                 ),
               ],
             ),

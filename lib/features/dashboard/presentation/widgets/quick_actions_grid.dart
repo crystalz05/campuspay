@@ -37,11 +37,9 @@ class QuickActionsGrid extends StatelessWidget {
               },
             ),
             _QuickActionItem(
-              icon: Icons.receipt_long_outlined,
-              label: 'History',
-              onTap: () {
-                // TODO: Navigate to History
-              },
+              icon: Icons.phone_android,
+              label: 'Airtime',
+              onTap: () => context.push('/airtime'),
             ),
           ],
         ),

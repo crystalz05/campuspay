@@ -4,4 +4,5 @@ import '../entities/transaction_entity.dart';
 
 abstract class TransactionRepository {
   Future<Either<Failure, List<TransactionEntity>>> getRecentTransactions();
+  Future<Either<Failure, List<TransactionEntity>>> getTransactions({TransactionType? type});
 }

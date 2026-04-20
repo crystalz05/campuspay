@@ -7,6 +7,8 @@ import 'core/theme/app_theme.dart';
 import 'core/router/app_router.dart';
 import 'features/notifications/presentation/bloc/notifications_bloc.dart';
 import 'features/notifications/presentation/bloc/notifications_event.dart';
+import 'features/settings/presentation/bloc/settings_bloc.dart';
+import 'features/settings/presentation/bloc/settings_state.dart';
 
 class CampusPayApp extends StatelessWidget {
   const CampusPayApp({super.key});
@@ -18,18 +20,23 @@ class CampusPayApp extends StatelessWidget {
         providers: [
           BlocProvider<AuthBloc>(create: (_) => di.sl<AuthBloc>()..add(CheckAuthStatusEvent())),
           BlocProvider<NotificationsBloc>(create: (_) => di.sl<NotificationsBloc>()),
+          BlocProvider<SettingsBloc>(create: (_) => di.sl<SettingsBloc>()),
         ],
         child: Builder(
           builder: (context) {
             final router = AppRouter.createRouter(context.read<AuthBloc>());
             
-            return MaterialApp.router(
-              title: 'CampusPay',
-              theme: CampusPayTheme.lightTheme,
-              darkTheme: CampusPayTheme.darkTheme,
-              themeMode: ThemeMode.system, // follows device appearance setting
-              routerConfig: router,
-              debugShowCheckedModeBanner: false,
+            return BlocBuilder<SettingsBloc, SettingsState>(
+              builder: (context, state) {
+                return MaterialApp.router(
+                  title: 'CampusPay',
+                  theme: CampusPayTheme.lightTheme,
+                  darkTheme: CampusPayTheme.darkTheme,
+                  themeMode: state.themeMode,
+                  routerConfig: router,
+                  debugShowCheckedModeBanner: false,
+                );
+              },
             );
           }
         )
