@@ -14,6 +14,9 @@ import '../../features/auth/presentation/pages/set_pin_screen.dart';
 import '../../features/dashboard/presentation/pages/dashboard_screen.dart';
 import '../../features/dashboard/presentation/pages/profile_screen.dart';
 import '../../features/settings/presentation/pages/settings_screen.dart';
+import '../../features/settings/presentation/pages/personal_info_screen.dart';
+import '../../features/settings/presentation/pages/academic_details_screen.dart';
+import '../../features/settings/presentation/pages/change_pin_screen.dart';
 import '../../features/dashboard/presentation/widgets/main_nav_wrapper.dart';
 import '../../features/fee_payment/domain/entities/fee_payment_entity.dart';
 import '../../features/fee_payment/presentation/pages/fee_confirm_screen.dart';
@@ -332,6 +335,18 @@ class AppRouter {
                 GoRoute(
                   path: '/profile',
                   builder: (context, state) => const ProfileScreen(),
+                ),
+                GoRoute(
+                  path: '/profile/personal-info',
+                  builder: (context, state) => const PersonalInfoScreen(),
+                ),
+                GoRoute(
+                  path: '/profile/academic-details',
+                  builder: (context, state) => const AcademicDetailsScreen(),
+                ),
+                GoRoute(
+                  path: '/profile/change-pin',
+                  builder: (context, state) => const ChangePinScreen(),
                 ),
               ],
             ),

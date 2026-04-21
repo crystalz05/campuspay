@@ -150,6 +150,28 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
+  Future<Either<Failure, void>> updateProfile({
+    String? fullName,
+    String? matricNumber,
+    String? institution,
+  }) async {
+    try {
+      await remoteDataSource.updateProfile(
+        fullName: fullName,
+        matricNumber: matricNumber,
+        institution: institution,
+      );
+      return const Right(null);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(_mapAuthErrorMessage(e.message)));
+    } on AppAuthException catch (e) {
+      return Left(AuthFailure(_mapAuthErrorMessage(e.message)));
+    } catch (e) {
+      return const Left(ServerFailure('Failed to update profile.'));
+    }
+  }
+
+  @override
   Stream<UserEntity?> get onAuthStateChanged {
     return remoteDataSource.onAuthStateChanged.asyncMap((supabaseUser) async {
       if (supabaseUser == null) return null;

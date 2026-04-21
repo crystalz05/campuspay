@@ -29,9 +29,7 @@ class ProfileScreen extends StatelessWidget {
                 _SettingsTile(
                   icon: Icons.person_outline_rounded,
                   label: 'Personal Information',
-                  onTap: () {
-                    // TODO: Navigate to profile edit
-                  },
+                  onTap: () => context.push('/profile/personal-info'),
                 ),
                 _SettingsTile(
                   icon: Icons.settings_outlined,
@@ -42,17 +40,13 @@ class ProfileScreen extends StatelessWidget {
                 _SettingsTile(
                   icon: Icons.lock_outline_rounded,
                   label: 'Change Transaction PIN',
-                  onTap: () {
-                    // TODO: Navigate to set pin
-                  },
+                  onTap: () => context.push('/profile/change-pin'),
                 ),
                 _SettingsTile(
                   icon: Icons.school_outlined,
                   label: 'Academic Details',
                   subtitle: user?.institution ?? 'Not set',
-                  onTap: () {
-                    // TODO: Navigate to update academic details
-                  },
+                  onTap: () => context.push('/profile/academic-details'),
                 ),
                 const SizedBox(height: 8),
 

@@ -96,3 +96,18 @@ class AuthStateChangedEvent extends AuthEvent {
   @override
   List<Object?> get props => [event];
 }
+
+class UpdateProfileEvent extends AuthEvent {
+  final String? fullName;
+  final String? matricNumber;
+  final String? institution;
+
+  const UpdateProfileEvent({
+    this.fullName,
+    this.matricNumber,
+    this.institution,
+  });
+
+  @override
+  List<Object?> get props => [fullName, matricNumber, institution];
+}

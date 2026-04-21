@@ -13,6 +13,7 @@ import '../../domain/usecases/register_usecase.dart';
 import '../../domain/usecases/reset_password_usecase.dart';
 import '../../domain/usecases/resend_verification_usecase.dart';
 import '../../domain/usecases/set_pin_usecase.dart';
+import '../../domain/usecases/update_profile_usecase.dart';
 import 'auth_event.dart';
 import 'auth_state.dart';
 
@@ -26,6 +27,7 @@ class AuthBloc extends Bloc<AuthEvent, CampusAuthState> {
   final SetTransactionPinUseCase setTransactionPinUseCase;
   final CompleteProfileUseCase completeProfileUseCase;
   final ResendVerificationUseCase resendVerificationUseCase;
+  final UpdateProfileUseCase updateProfileUseCase;
 
   // Supabase auth state stream subscription — listens for deep-link auth events
   // like PASSWORD_RECOVERY so the router can redirect correctly.
@@ -41,6 +43,7 @@ class AuthBloc extends Bloc<AuthEvent, CampusAuthState> {
     required this.setTransactionPinUseCase,
     required this.completeProfileUseCase,
     required this.resendVerificationUseCase,
+    required this.updateProfileUseCase,
   }) : super(CampusAuthInitial()) {
     on<CheckAuthStatusEvent>(_onCheckAuthStatus);
     on<RefreshUserEvent>(_onRefreshUser);
@@ -52,6 +55,7 @@ class AuthBloc extends Bloc<AuthEvent, CampusAuthState> {
     on<ResetPasswordEvent>(_onResetPassword);
     on<SetTransactionPinEvent>(_onSetTransactionPin);
     on<CompleteProfileEvent>(_onCompleteProfile);
+    on<UpdateProfileEvent>(_onUpdateProfile);
     on<AuthStateChangedEvent>(_onAuthStateChanged);
 
     // Subscribe to Supabase's native auth state stream.
@@ -266,6 +270,33 @@ class AuthBloc extends Bloc<AuthEvent, CampusAuthState> {
               emit(CampusAuthAuthenticated(user: user));
             } else {
               emit(CampusAuthPinSetupSuccess());
+            }
+          },
+        );
+      },
+    );
+  }
+
+  Future<void> _onUpdateProfile(
+    UpdateProfileEvent event,
+    Emitter<CampusAuthState> emit,
+  ) async {
+    emit(CampusAuthLoading());
+    final result = await updateProfileUseCase(UpdateProfileParams(
+      fullName: event.fullName,
+      matricNumber: event.matricNumber,
+      institution: event.institution,
+    ));
+    result.fold(
+      (failure) => emit(CampusAuthError(message: failure.message)),
+      (_) async {
+        // Refresh the user data to reflect changes
+        final userResult = await getCurrentUserUseCase(NoParams());
+        userResult.fold(
+          (failure) => emit(CampusAuthAuthenticated(user: (state as dynamic).user)),
+          (user) {
+            if (user != null) {
+              emit(CampusAuthAuthenticated(user: user));
             }
           },
         );

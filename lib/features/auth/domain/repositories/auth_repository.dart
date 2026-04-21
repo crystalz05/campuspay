@@ -31,5 +31,7 @@ abstract class AuthRepository {
 
   Future<Either<Failure, void>> resendVerificationEmail({required String email});
 
+  Future<Either<Failure, void>> updateProfile({String? fullName, String? matricNumber, String? institution});
+
   Stream<UserEntity?> get onAuthStateChanged;
 }

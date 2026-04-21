@@ -110,42 +110,73 @@ class _AirtimePurchaseScreenState extends State<AirtimePurchaseScreen> {
                   Text('Select Network', style: theme.textTheme.titleMedium),
                   const SizedBox(height: 12),
                   // Network chips
-                  Wrap(
-                    spacing: 10,
-                    runSpacing: 10,
-                    children: _networks.map((n) {
+                  GridView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 3,
+                      crossAxisSpacing: 12,
+                      mainAxisSpacing: 12,
+                      childAspectRatio: 1.4,
+                    ),
+                    itemCount: _networks.length,
+                    itemBuilder: (context, index) {
+                      final n = _networks[index];
                       final isSelected = _selectedNetwork == n;
                       final color = _networkColors[n]!;
+                      
                       return GestureDetector(
-                        onTap: isProcessing
-                            ? null
-                            : () => setState(() => _selectedNetwork = n),
+                        onTap: isProcessing ? null : () => setState(() => _selectedNetwork = n),
                         child: AnimatedContainer(
-                          duration: const Duration(milliseconds: 180),
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 18, vertical: 10),
+                          duration: const Duration(milliseconds: 200),
+                          curve: Curves.easeOutCubic,
                           decoration: BoxDecoration(
-                            color: isSelected
-                                ? color.withValues(alpha: 0.12)
-                                : cs.surface,
-                            borderRadius: BorderRadius.circular(30),
+                            color: isSelected ? color.withValues(alpha: 0.15) : cs.surface,
+                            borderRadius: BorderRadius.circular(16),
                             border: Border.all(
-                              color: isSelected ? color : theme.dividerColor,
+                              color: isSelected ? color : cs.outline.withValues(alpha: 0.2),
                               width: isSelected ? 2 : 1,
                             ),
+                            boxShadow: isSelected ? [
+                              BoxShadow(
+                                color: color.withValues(alpha: 0.2),
+                                blurRadius: 12,
+                                offset: const Offset(0, 4),
+                              )
+                            ] : null,
                           ),
-                          child: Text(
-                            n.displayName,
-                            style: theme.textTheme.labelLarge?.copyWith(
-                              color: isSelected ? color : null,
-                              fontWeight: isSelected
-                                  ? FontWeight.w700
-                                  : FontWeight.w500,
-                            ),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Container(
+                                width: 12,
+                                height: 12,
+                                decoration: BoxDecoration(
+                                  color: color,
+                                  shape: BoxShape.circle,
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: color.withValues(alpha: 0.5),
+                                      blurRadius: 4,
+                                      spreadRadius: 1,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                n.displayName,
+                                style: theme.textTheme.labelLarge?.copyWith(
+                                  color: isSelected ? color : cs.onSurface,
+                                  fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+                                  letterSpacing: 0.5,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       );
-                    }).toList(),
+                    },
                   ),
                   const SizedBox(height: 28),
                   Text('Phone Number', style: theme.textTheme.labelLarge),

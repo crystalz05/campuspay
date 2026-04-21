@@ -109,43 +109,72 @@ class _HistoryScreenState extends State<HistoryScreen> {
       {'label': 'Deposits', 'type': TransactionType.deposit},
     ];
 
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+
     return Container(
-      height: 60,
-      padding: const EdgeInsets.symmetric(vertical: 8),
+      height: 64,
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      decoration: BoxDecoration(
+        color: cs.surface,
+        border: Border(
+          bottom: BorderSide(
+            color: theme.dividerColor.withValues(alpha: 0.1),
+            width: 1,
+          ),
+        ),
+      ),
       child: ListView.separated(
-        padding: const EdgeInsets.symmetric(horizontal: 16),
+        padding: const EdgeInsets.symmetric(horizontal: 20),
         scrollDirection: Axis.horizontal,
+        physics: const BouncingScrollPhysics(),
         itemCount: filters.length,
-        separatorBuilder: (context, index) => const SizedBox(width: 8),
+        separatorBuilder: (context, index) => const SizedBox(width: 12),
         itemBuilder: (context, index) {
           final filter = filters[index];
           final isSelected = _selectedType == filter['type'];
 
-          return ChoiceChip(
-            label: Text(filter['label'] as String),
-            selected: isSelected,
-            onSelected: (selected) {
-              if (selected) {
+          return GestureDetector(
+            onTap: () {
+              if (!isSelected) {
                 setState(() {
                   _selectedType = filter['type'] as TransactionType?;
                 });
                 context.read<HistoryBloc>().add(FetchHistoryEvent(type: _selectedType));
               }
             },
-            selectedColor: Theme.of(context).colorScheme.primary,
-            labelStyle: TextStyle(
-              color: isSelected ? Colors.white : Theme.of(context).colorScheme.onSurface,
-              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-              fontSize: 13,
-            ),
-            backgroundColor: Theme.of(context).colorScheme.surface,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(20),
-              side: BorderSide(
-                color: isSelected ? Colors.transparent : Theme.of(context).dividerColor.withValues(alpha: 0.5),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 250),
+              curve: Curves.easeOutCubic,
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+              decoration: BoxDecoration(
+                color: isSelected ? cs.primary : Colors.transparent,
+                borderRadius: BorderRadius.circular(24),
+                border: Border.all(
+                  color: isSelected ? cs.primary : cs.outline.withValues(alpha: 0.2),
+                  width: 1,
+                ),
+                boxShadow: isSelected ? [
+                  BoxShadow(
+                    color: cs.primary.withValues(alpha: 0.3),
+                    blurRadius: 8,
+                    offset: const Offset(0, 4),
+                  )
+                ] : null,
+              ),
+              child: Center(
+                child: AnimatedDefaultTextStyle(
+                  duration: const Duration(milliseconds: 250),
+                  style: TextStyle(
+                    color: isSelected ? theme.colorScheme.onPrimary : cs.onSurfaceVariant,
+                    fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                    fontSize: 14,
+                    letterSpacing: 0.2,
+                  ),
+                  child: Text(filter['label'] as String),
+                ),
               ),
             ),
-            showCheckmark: false,
           );
         },
       ),

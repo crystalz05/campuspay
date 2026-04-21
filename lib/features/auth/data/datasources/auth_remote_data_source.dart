@@ -33,6 +33,8 @@ abstract class AuthRemoteDataSource {
 
   Future<void> resendVerificationEmail({required String email});
 
+  Future<void> updateProfile({String? fullName, String? matricNumber, String? institution});
+
   Stream<supabase.User?> get onAuthStateChanged;
 }
 
@@ -251,6 +253,37 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       throw app.ServerException(e.message);
     } catch (e, stack) {
       log('Unexpected error during resendVerificationEmail', name: 'AuthRemoteDataSource', error: e, stackTrace: stack);
+      throw app.ServerException(e.toString());
+    }
+  }
+
+  @override
+  Future<void> updateProfile({
+    String? fullName,
+    String? matricNumber,
+    String? institution,
+  }) async {
+    final user = client.auth.currentUser;
+    if (user == null) throw const app.AppAuthException('Not authenticated');
+
+    try {
+      final Map<String, dynamic> updates = {};
+      if (fullName != null) updates['full_name'] = fullName;
+      if (matricNumber != null) updates['matric_number'] = matricNumber;
+      if (institution != null) updates['institution'] = institution;
+
+      if (updates.isEmpty) return;
+
+      await client.from('users').update(updates).eq('id', user.id);
+
+      // If full name is updated, also update auth metadata for consistency
+      if (fullName != null) {
+        await client.auth.updateUser(
+          supabase.UserAttributes(data: {'full_name': fullName}),
+        );
+      }
+    } catch (e, stack) {
+      log('Error during updateProfile', name: 'AuthRemoteDataSource', error: e, stackTrace: stack);
       throw app.ServerException(e.toString());
     }
   }

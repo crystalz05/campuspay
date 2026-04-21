@@ -113,6 +113,11 @@ class SettingsScreen extends StatelessWidget {
               style: SegmentedButton.styleFrom(
                 selectedBackgroundColor: cs.primary,
                 selectedForegroundColor: cs.onPrimary,
+                // This changes the border color and width
+                side: BorderSide(
+                  color: cs.outline.withValues(alpha: 0.1), // Use your desired color here
+                  width: 1.0,        // Optional: adjust the thickness
+                ),
               ),
             ),
           ),
