@@ -13,6 +13,7 @@ import '../widgets/recent_transactions_list.dart';
 import '../widgets/wallet_balance_card.dart';
 import '../../../notifications/presentation/bloc/notifications_bloc.dart';
 import '../../../notifications/presentation/bloc/notifications_event.dart';
+import '../../../../core/widgets/skeleton_loader.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -73,9 +74,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 );
               }
 
-              // Show a loading spinner while the auth check is in progress
+              // Show a loading skeleton while the auth check is in progress
               if (authState is CampusAuthLoading || authState is CampusAuthInitial) {
-                return const Center(child: CircularProgressIndicator());
+                return const DashboardSkeleton();
               }
 
               // Fallback — should not normally appear

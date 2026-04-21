@@ -6,6 +6,8 @@ import '../bloc/history_bloc.dart';
 import '../bloc/history_event.dart';
 import '../bloc/history_state.dart';
 import '../widgets/transaction_list_item.dart';
+import '../../../../core/widgets/empty_state_widget.dart';
+import '../../../../core/widgets/skeleton_loader.dart';
 
 class HistoryScreen extends StatefulWidget {
   const HistoryScreen({super.key});
@@ -41,10 +43,14 @@ class _HistoryScreenState extends State<HistoryScreen> {
             child: BlocBuilder<HistoryBloc, HistoryState>(
               builder: (context, state) {
                 if (state is HistoryLoading) {
-                  return const Center(child: CircularProgressIndicator());
+                  return const TransactionSkeletonList(itemCount: 8);
                 } else if (state is HistoryLoaded) {
                   if (state.transactions.isEmpty) {
-                    return _buildEmptyState();
+                    return const EmptyStateWidget(
+                      icon: Icons.history_rounded,
+                      title: 'No transactions found',
+                      subtitle: 'Try filtering by a different category.',
+                    );
                   }
                   return RefreshIndicator(
                     onRefresh: () async {
@@ -142,35 +148,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
             showCheckmark: false,
           );
         },
-      ),
-    );
-  }
-
-  Widget _buildEmptyState() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.history_outlined,
-            size: 64,
-            color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.2),
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'No transactions found',
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  color: Theme.of(context).colorScheme.outline,
-                ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Try filtering by a different category',
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Theme.of(context).colorScheme.outline,
-                ),
-          ),
-        ],
       ),
     );
   }

@@ -7,6 +7,8 @@ import '../../domain/entities/transaction_entity.dart';
 import '../bloc/dashboard_bloc.dart';
 import '../bloc/dashboard_state.dart';
 import 'main_nav_wrapper.dart';
+import '../../../../core/widgets/empty_state_widget.dart';
+import '../../../../core/widgets/skeleton_loader.dart';
 
 class RecentTransactionsList extends StatelessWidget {
   const RecentTransactionsList({super.key});
@@ -39,15 +41,17 @@ class RecentTransactionsList extends StatelessWidget {
         BlocBuilder<DashboardBloc, DashboardState>(
           builder: (context, state) {
             if (state is DashboardLoading) {
-              return const Center(
-                child: Padding(
-                  padding: EdgeInsets.symmetric(vertical: 24.0),
-                  child: CircularProgressIndicator(),
-                ),
+              return const Padding(
+                padding: EdgeInsets.symmetric(vertical: 8.0),
+                child: TransactionSkeletonList(itemCount: 3),
               );
             } else if (state is DashboardLoaded) {
               if (state.transactions.isEmpty) {
-                return _buildEmptyState(context);
+                return const EmptyStateWidget(
+                  icon: Icons.history_outlined,
+                  title: 'No transactions yet',
+                  subtitle: 'When you transfer funds or make payments, your history will appear here.',
+                );
               }
               return ListView.separated(
                 shrinkWrap: true,
@@ -83,30 +87,6 @@ class RecentTransactionsList extends StatelessWidget {
           },
         ),
       ],
-    );
-  }
-
-  Widget _buildEmptyState(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 48.0),
-        child: Column(
-          children: [
-            Icon(
-              Icons.history_outlined,
-              size: 40,
-              color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.3),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'No transactions yet',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Theme.of(context).colorScheme.outline,
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }

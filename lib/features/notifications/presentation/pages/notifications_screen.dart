@@ -5,6 +5,8 @@ import '../../domain/entities/notification_entity.dart';
 import '../bloc/notifications_bloc.dart';
 import '../bloc/notifications_event.dart';
 import '../bloc/notifications_state.dart';
+import '../../../../core/widgets/empty_state_widget.dart';
+import '../../../../core/widgets/skeleton_loader.dart';
 
 class NotificationsScreen extends StatelessWidget {
   const NotificationsScreen({super.key});
@@ -33,7 +35,7 @@ class NotificationsScreen extends StatelessWidget {
       body: BlocBuilder<NotificationsBloc, NotificationsState>(
         builder: (context, state) {
           if (state is NotificationsLoading) {
-            return const Center(child: CircularProgressIndicator());
+            return const NotificationSkeletonList(itemCount: 6);
           }
 
           if (state is NotificationsError) {
@@ -56,18 +58,10 @@ class NotificationsScreen extends StatelessWidget {
 
           if (state is NotificationsLoaded) {
             if (state.notifications.isEmpty) {
-              return Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.notifications_none, size: 64, color: Colors.grey.withValues(alpha: 0.5)),
-                    const SizedBox(height: 16),
-                    Text(
-                      'No notifications yet',
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(color: Colors.grey),
-                    ),
-                  ],
-                ),
+              return const EmptyStateWidget(
+                icon: Icons.notifications_none_rounded,
+                title: 'No notifications yet',
+                subtitle: 'All caught up! We\'ll let you know when something happens.',
               );
             }
 
