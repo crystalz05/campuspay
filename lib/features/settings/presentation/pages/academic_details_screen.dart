@@ -14,7 +14,9 @@ class AcademicDetailsScreen extends StatefulWidget {
 class _AcademicDetailsScreenState extends State<AcademicDetailsScreen> {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _matricController;
+  late TextEditingController _customInstController;
   String? _selectedInstitution;
+  bool _isCustomInstitution = false;
 
   final List<String> _institutions = [
     'University of Lagos',
@@ -23,17 +25,27 @@ class _AcademicDetailsScreenState extends State<AcademicDetailsScreen> {
     'Covenant University',
     'Lagos State University',
     'Babcock University',
+    'Other (Please specify)',
   ];
 
   @override
   void initState() {
     super.initState();
     final authState = context.read<AuthBloc>().state;
+    _customInstController = TextEditingController();
+    
     if (authState is CampusAuthAuthenticated) {
       _matricController = TextEditingController(text: authState.user.matricNumber);
-      _selectedInstitution = authState.user.institution;
-      if (_selectedInstitution != null && !_institutions.contains(_selectedInstitution)) {
-        _institutions.add(_selectedInstitution!);
+      final currentInst = authState.user.institution;
+      
+      if (currentInst != null && currentInst.isNotEmpty) {
+        if (_institutions.contains(currentInst) && currentInst != 'Other (Please specify)') {
+          _selectedInstitution = currentInst;
+        } else {
+          _selectedInstitution = 'Other (Please specify)';
+          _isCustomInstitution = true;
+          _customInstController.text = currentInst;
+        }
       }
     } else {
       _matricController = TextEditingController();
@@ -43,14 +55,19 @@ class _AcademicDetailsScreenState extends State<AcademicDetailsScreen> {
   @override
   void dispose() {
     _matricController.dispose();
+    _customInstController.dispose();
     super.dispose();
   }
 
   void _onSave() {
     if (_formKey.currentState!.validate()) {
+      final institution = _isCustomInstitution 
+          ? _customInstController.text.trim()
+          : _selectedInstitution;
+          
       context.read<AuthBloc>().add(UpdateProfileEvent(
         matricNumber: _matricController.text.trim(),
-        institution: _selectedInstitution,
+        institution: institution,
       ));
     }
   }
@@ -117,10 +134,23 @@ class _AcademicDetailsScreenState extends State<AcademicDetailsScreen> {
                   onChanged: isLoading ? null : (v) {
                     setState(() {
                       _selectedInstitution = v;
+                      _isCustomInstitution = v == 'Other (Please specify)';
                     });
                   },
                   validator: (v) => (v == null || v.isEmpty) ? 'Please select an institution' : null,
                 ),
+                if (_isCustomInstitution) ...[
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _customInstController,
+                    enabled: !isLoading,
+                    decoration: const InputDecoration(
+                      hintText: 'Enter your institution name',
+                      prefixIcon: Icon(Icons.edit_outlined),
+                    ),
+                    validator: (v) => (v == null || v.isEmpty) ? 'Please enter your institution name' : null,
+                  ),
+                ],
                 const SizedBox(height: 48),
                 ElevatedButton(
                   onPressed: isLoading ? null : _onSave,

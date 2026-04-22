@@ -259,8 +259,10 @@ class AuthBloc extends Bloc<AuthEvent, CampusAuthState> {
   ) async {
     emit(CampusAuthLoading());
     final result = await setTransactionPinUseCase(event.pin);
-    result.fold(
-      (failure) => emit(CampusAuthError(message: failure.message)),
+    await result.fold(
+      (failure) async {
+        emit(CampusAuthError(message: failure.message));
+      },
       (_) async {
         final userResult = await getCurrentUserUseCase(NoParams());
         userResult.fold(
@@ -287,8 +289,10 @@ class AuthBloc extends Bloc<AuthEvent, CampusAuthState> {
       matricNumber: event.matricNumber,
       institution: event.institution,
     ));
-    result.fold(
-      (failure) => emit(CampusAuthError(message: failure.message)),
+    await result.fold(
+      (failure) async {
+        emit(CampusAuthError(message: failure.message));
+      },
       (_) async {
         // Refresh the user data to reflect changes
         final userResult = await getCurrentUserUseCase(NoParams());
