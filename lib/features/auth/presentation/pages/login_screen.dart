@@ -110,11 +110,11 @@ class _LoginViewState extends State<_LoginView> {
                                     border: Border.all(color: cs.primary.withValues(alpha: 0.1), width: 1.5),
                                     shape: BoxShape.circle,
                                   ),
-                                  child: Icon(
-                                    Icons.account_balance_rounded, 
-                                    size: 40, 
-                                    color: cs.primary
-                                  ),
+                                  child: Image.asset(
+                                    'assets/icons/icon.png',
+                                    width: 82,
+                                    height: 82,
+                                  )
                                 ),
                               ),
                               const SizedBox(height: 40),

@@ -80,6 +80,22 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
+
+                        // ── Minimalist Logo/Icon ──────────────────────
+                        Center(
+                          child: Container(
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                border: Border.all(color: cs.primary.withValues(alpha: 0.1), width: 1.5),
+                                shape: BoxShape.circle,
+                              ),
+                              child: Image.asset(
+                                'assets/icons/icon.png',
+                                width: 82,
+                                height: 82,
+                              )
+                          ),
+                        ),
                         const SizedBox(height: 24),
                         Text(
                           'Join CampusPay',
