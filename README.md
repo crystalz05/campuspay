@@ -5,6 +5,11 @@ A comprehensive, clean-architecture based Flutter application for campus financi
 ## 📸 Screenshots
 
 <p align="center">
+  <img src="screenshots/login.png" width="31%" alt="Login Screen"/>
+  <img src="screenshots/signup.png" width="31%" alt="Sign Up Screen"/>
+  <img src="screenshots/forgot_password.png" width="31%" alt="Forgot Password Screen"/>
+</p>
+<p align="center">
   <img src="screenshots/home.png" width="31%" alt="Home Screen"/>
   <img src="screenshots/fund_wallet.png" width="31%" alt="Fund Wallet"/>
   <img src="screenshots/pay.png" width="31%" alt="Pay Hub"/>
